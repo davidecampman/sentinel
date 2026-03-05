@@ -37,8 +37,16 @@ class Skill:
     raw_frontmatter: Dict[str, Any] = field(default_factory=dict)
 
 
+PENDING_SUBDIR = "pending"
+ACTIVE_SUBDIR = "active"
+
+
 def get_skills_base_dir() -> Path:
-    return Path(files.get_abs_path("usr", "skills"))
+    return Path(files.get_abs_path("usr", "skills", ACTIVE_SUBDIR))
+
+
+def get_pending_dir() -> Path:
+    return Path(files.get_abs_path("usr", "skills", PENDING_SUBDIR))
 
 
 def get_skill_roots(
@@ -56,7 +64,7 @@ def get_skill_roots(
         agents = files.find_existing_paths_by_pattern("agents/*/skills") # agents
         paths = [
             files.get_abs_path("skills"), 
-            files.get_abs_path("usr/skills"),
+            files.get_abs_path("usr/skills", ACTIVE_SUBDIR),
             *project_agents,
             *projects,
             *usr_agents,

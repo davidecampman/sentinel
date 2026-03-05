@@ -40,12 +40,16 @@ class Skill:
 
 
 def get_skills_dirs() -> List[Path]:
-    """Get all skill directories"""
-    base = Path(files.get_abs_path("usr", "skills"))
+    """Get all skill directories (active skills only)"""
+    base = Path(files.get_abs_path("usr", "skills", "active"))
     return [
         base / "custom",
         base / "default",
     ]
+
+
+def get_pending_dir() -> Path:
+    return Path(files.get_abs_path("usr", "skills", "pending"))
 
 
 def parse_skill_file(skill_path: Path) -> Optional[Skill]:
@@ -156,7 +160,7 @@ def validate_skill(skill: Skill) -> List[str]:
 def create_skill(name: str, description: str = "", author: str = "") -> Path:
     """Create a new skill from template"""
     # Use custom directory for user-created skills
-    custom_dir = Path(files.get_abs_path("usr", "skills", "custom"))
+    custom_dir = Path(files.get_abs_path("usr", "skills", "pending", "custom"))
     custom_dir.mkdir(parents=True, exist_ok=True)
 
     skill_dir = custom_dir / name
@@ -225,6 +229,60 @@ Description of what to do next.
     return skill_dir
 
 
+def list_pending_skills() -> List[Skill]:
+    """List skills waiting in the pending directory."""
+    pending = get_pending_dir()
+    skills = []
+    if not pending.exists():
+        return skills
+    for skill_dir in pending.rglob("SKILL.md"):
+        skill = parse_skill_file(skill_dir)
+        if skill:
+            skills.append(skill)
+    return skills
+
+
+def promote_skill(name: str) -> Path:
+    """
+    Move a skill from pending/ to active/ after human review.
+    Raises FileNotFoundError if the skill is not found in pending/.
+    Raises ValueError if a skill with that name already exists in active/.
+    """
+    import shutil
+
+    pending = get_pending_dir()
+    active = Path(files.get_abs_path("usr", "skills", "active"))
+
+    # Find the skill dir inside pending/
+    skill_dir: Optional[Path] = None
+    for skill_md in pending.rglob("SKILL.md"):
+        skill = parse_skill_file(skill_md)
+        if skill and (skill.name == name or skill_md.parent.name == name):
+            skill_dir = skill_md.parent
+            break
+
+    if skill_dir is None:
+        raise FileNotFoundError(
+            f"Skill '{name}' not found in pending directory ({pending})"
+        )
+
+    # Compute destination preserving sub-namespace structure
+    try:
+        rel = skill_dir.relative_to(pending)
+    except ValueError:
+        rel = Path(skill_dir.name)
+
+    dest = active / rel
+    if dest.exists():
+        raise ValueError(
+            f"A skill already exists at {dest}. Delete it first or rename the pending skill."
+        )
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(skill_dir), str(dest))
+    return dest
+
+
 def print_skill_table(skills: List[Skill]):
     """Print skills in a formatted table"""
     if not skills:
@@ -289,6 +347,16 @@ Examples:
     # Search command
     search_parser = subparsers.add_parser("search", help="Search skills")
     search_parser.add_argument("query", help="Search query")
+
+    # List-pending command
+    subparsers.add_parser("list-pending", help="List skills awaiting approval in pending/")
+
+    # Promote command
+    promote_parser = subparsers.add_parser(
+        "promote",
+        help="Approve and promote a skill from pending/ to active/",
+    )
+    promote_parser.add_argument("name", help="Skill name or directory name to promote")
 
     args = parser.parse_args()
 
@@ -355,6 +423,47 @@ Examples:
             print_skill_table(results)
         else:
             print(f"\nNo skills found matching '{args.query}'")
+
+    elif args.command == "list-pending":
+        skills = list_pending_skills()
+        if not skills:
+            print(f"\nNo skills awaiting approval in {get_pending_dir()}")
+        else:
+            print(f"\nPending skills (review before promoting):")
+            print_skill_table(skills)
+            print(f"\nTo approve a skill run:")
+            print(f"  python -m python.helpers.skills_cli promote <name>")
+
+    elif args.command == "promote":
+        pending = get_pending_dir()
+        # Show skill content for review before moving
+        skill_md: Optional[Path] = None
+        for md in pending.rglob("SKILL.md"):
+            s = parse_skill_file(md)
+            if s and (s.name == args.name or md.parent.name == args.name):
+                skill_md = md
+                break
+
+        if skill_md is None:
+            print(f"\nSkill '{args.name}' not found in {pending}")
+            sys.exit(1)
+
+        print(f"\n{'=' * 60}")
+        print(f"SKILL.md contents for '{args.name}':")
+        print(f"{'=' * 60}")
+        print(skill_md.read_text(encoding="utf-8"))
+        print(f"{'=' * 60}")
+        answer = input("\nPromote this skill to active? [y/N] ").strip().lower()
+        if answer != "y":
+            print("Aborted. Skill remains in pending/.")
+            sys.exit(0)
+
+        try:
+            dest = promote_skill(args.name)
+            print(f"\nSkill '{args.name}' promoted to: {dest}")
+        except (FileNotFoundError, ValueError) as e:
+            print(f"\nError: {e}")
+            sys.exit(1)
 
     else:
         parser.print_help()

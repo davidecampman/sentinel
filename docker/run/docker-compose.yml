@@ -1,8 +1,13 @@
 services:
   agent-zero:
     container_name: agent-zero
-    image: agent0ai/agent-zero:latest
+    image: agent-zero-hardened:latest
     volumes:
-      - ./agent-zero:/a0
+      # Mount /a0/usr to persist user data (memories, skills, settings) across restarts.
+      # Remove this if you want a fully ephemeral container.
+      - agent-zero-usr:/a0/usr
     ports:
-      - "50080:80"
+      - "127.0.0.1:50080:80"
+
+volumes:
+  agent-zero-usr:

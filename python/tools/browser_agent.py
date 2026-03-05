@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from typing import Optional, cast
 from agent import Agent, InterventionException
@@ -50,12 +51,21 @@ class State:
         # for some reason we need to provide exact path to headless shell, otherwise it looks for headed browser
         pw_binary = ensure_playwright_binary()
                 
+        # Route browser traffic through the corporate proxy when configured.
+        # Set BROWSER_PROXY in .env, e.g. BROWSER_PROXY=http://proxy.corp.example.com:8080
+        proxy_server = os.environ.get("BROWSER_PROXY", "").strip()
+        chrome_args = ["--headless=new"]
+        if proxy_server:
+            chrome_args.append(f"--proxy-server={proxy_server}")
+
         self.browser_session = browser_use.BrowserSession(
             browser_profile=browser_use.BrowserProfile(
                 headless=True,
-                disable_security=True,
+                disable_security=False,
+                # chromium_sandbox must remain False: Chrome cannot sandbox
+                # when the container process runs as root (Docker constraint).
                 chromium_sandbox=False,
-                accept_downloads=True,
+                accept_downloads=False,
                 downloads_path=files.get_abs_path("usr/downloads"),
                 allowed_domains=["*", "http://*", "https://*"],
                 executable_path=pw_binary,
@@ -67,7 +77,7 @@ class State:
                 screen={"width": 1024, "height": 2048},
                 viewport={"width": 1024, "height": 2048},
                 no_viewport=False,
-                args=["--headless=new"],
+                args=chrome_args,
                 # Use a unique user data directory to avoid conflicts
                 user_data_dir=self.get_user_data_dir(),
                 extra_http_headers=self.agent.config.browser_http_headers or {},

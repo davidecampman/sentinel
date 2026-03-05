@@ -41,11 +41,30 @@ async def call_rfc(
     return result
 
 
+# Only modules whose dotted path starts with one of these prefixes may be
+# invoked via RFC. All legitimate callers are internal agent-zero modules.
+# This blocks calls to os, subprocess, builtins, and third-party packages.
+_ALLOWED_MODULE_PREFIXES = (
+    "python.helpers.",
+    "python.api.",
+    "python.tools.",
+)
+
+
+def _assert_module_allowed(module: str) -> None:
+    if not any(module.startswith(prefix) for prefix in _ALLOWED_MODULE_PREFIXES):
+        raise Exception(
+            f"RFC module '{module}' is not in the allowed prefix list. "
+            "Only internal agent-zero modules may be called via RFC."
+        )
+
+
 async def handle_rfc(rfc_call: RFCCall, password: str):
     if not crypto.verify_data(rfc_call["rfc_input"], rfc_call["hash"], password):
         raise Exception("Invalid RFC hash")
 
     input: RFCInput = json.loads(rfc_call["rfc_input"])
+    _assert_module_allowed(input["module"])
     return await _call_function(
         input["module"], input["function_name"], *input["args"], **input["kwargs"]
     )

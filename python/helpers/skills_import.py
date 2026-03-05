@@ -195,7 +195,8 @@ def resolve_skills_destination_root(
         return get_project_skills_folder(project_name)
     if agent_profile:
         return get_agent_profile_skills_folder(agent_profile)
-    return Path(files.get_abs_path("usr", "skills"))
+    from python.helpers.skills import get_pending_dir
+    return get_pending_dir()
 
 
 def import_skills(

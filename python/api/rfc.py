@@ -13,5 +13,11 @@ class RFC(ApiHandler):
         return False
 
     async def process(self, input: dict, request: Request) -> dict | Response:
+        # RFC is a host-to-container bridge used only in development mode.
+        # In Docker mode (--dockerized) call_development_function() bypasses
+        # RFC entirely, so this endpoint serves no purpose and must be disabled
+        # to eliminate the arbitrary module execution surface.
+        if not runtime.is_development():
+            raise Exception("RFC endpoint is disabled in Docker mode.")
         result = await runtime.handle_rfc(input) # type: ignore
         return result
