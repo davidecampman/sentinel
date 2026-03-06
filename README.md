@@ -149,6 +149,20 @@ docker run -p 50001:80 agent0ai/agent-zero
 - The whole framework is guided by the **prompts/** folder. Agent guidelines, tool instructions, messages, utility AI functions, it's all there.
 
 
+## 🔒 Security
+
+Agent Zero is built for developer convenience, which means several defaults are intentionally permissive. The project includes a set of hardening controls for anyone running it in a more sensitive environment:
+
+**RFC endpoint locked down** — The remote function call endpoint is disabled entirely in Docker/production mode. In development it is restricted to an allowlist of internal modules (`python.helpers.*`, `python.api.*`, `python.tools.*`) so arbitrary host code cannot be invoked through the API.
+
+**Skill approval gate** — Imported skills land in a `pending/` quarantine directory and cannot execute until a human explicitly promotes them to `active/` using the `skills_cli` tool. This lets you review skill content before it ever runs.
+
+**Browser agent security restored** — The headless browser now runs with standard security boundaries enabled, automatic downloads disabled, and support for a `BROWSER_PROXY` environment variable for corporate proxy routing. The browser agent's system prompt also includes explicit prompt-injection defenses, instructing it to treat all page content as untrusted data.
+
+**Docker network containment** — The agent port binds to `127.0.0.1` only (not `0.0.0.0`), keeping it off the network interface by default. User data is isolated in a scoped named volume rather than a full project bind mount.
+
+See [Security Hardening](./docs/security-hardening.md) for the full breakdown of what was changed and why.
+
 ## 📚 Read the Documentation
 
 | Page | Description |
