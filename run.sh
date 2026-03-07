@@ -7,21 +7,13 @@
 
 set -euo pipefail
 
-ENV_FILE=".env"
 AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}"
 
-if [ ! -f "$ENV_FILE" ]; then
-  echo "ERROR: $ENV_FILE not found."
-  echo "Copy .env.example to .env and set your credentials:"
-  echo "  cp .env.example .env"
-  exit 1
-fi
-
 export AGENT_ZERO_IMAGE
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agent-zero}"
 
 cd docker/run
 docker compose \
-  --env-file "../../.env" \
   -f docker-compose.yml \
   -f docker-compose.dev.yml \
   up -d

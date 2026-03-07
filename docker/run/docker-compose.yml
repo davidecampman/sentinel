@@ -11,3 +11,5 @@ services:
 
 volumes:
   agent-zero-usr:
+    external: true
+    name: run_agent-zero-usr
