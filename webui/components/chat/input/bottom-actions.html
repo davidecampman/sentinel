@@ -11,19 +11,7 @@
   <div x-data>
     <template x-if="$store.chatInput">
       <div class="text-buttons-row">
-        <button class="text-button" @click="$store.chatInput.pauseAgent(!$store.chatInput.paused)">
-            <template x-if="!$store.chatInput.paused">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
-                </svg>
-            </template>
-            <template x-if="$store.chatInput.paused">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" width="14" height="14">
-                    <path d="M8 5v14l11-7z"></path>
-                </svg>
-            </template>
-            <span x-text="$store.chatInput.paused ? 'Resume Agent' : 'Pause Agent'"></span>
-        </button>
+
 
         <button class="text-button" @click="$confirmClick($event, () => $store.chats.resetChat())" :disabled="!$store.chats.selected">
             <span class="material-symbols-outlined">delete_sweep</span>

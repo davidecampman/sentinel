@@ -515,3 +515,21 @@ body.light-mode {
   background: rgba(240,250,255,0.97) !important;
   border: 1px solid rgba(45,212,191,0.25) !important;
 }
+
+/* ── Send button — teal to match Sentinel brand ── */
+.dark-mode #send-button {
+    background-color: #2DD4BF !important;
+    color: #050d1a !important;
+}
+.dark-mode #send-button:hover {
+    background-color: #14B8A6 !important;
+    box-shadow: 0 4px 16px rgba(45, 212, 191, 0.40) !important;
+}
+.light-mode #send-button {
+    background-color: #0f9683 !important;
+    color: #ffffff !important;
+}
+.light-mode #send-button:hover {
+    background-color: #0b7a6a !important;
+    box-shadow: 0 4px 16px rgba(15, 150, 131, 0.35) !important;
+}

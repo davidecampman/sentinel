@@ -6,6 +6,7 @@
         import { store as fullScreenStore } from "/components/modals/full-screen-input/full-screen-store.js";
         import { store as messageQueueStore } from "/components/chat/message-queue/message-queue-store.js";
         import { store as chatInputStore } from "/components/chat/input/input-store.js";
+        import { store as chatsStore } from "/components/sidebar/chats/chats-store.js";
     </script>
 </head>
 <body>
@@ -48,6 +49,35 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 18" fill="currentColor">
                     <path d="m8,12c1.66,0,3-1.34,3-3V3c0-1.66-1.34-3-3-3s-3,1.34-3,3v6c0,1.66,1.34,3,3,3Zm-1,1.9c-2.7-.4-4.8-2.6-5-5.4H0c.2,3.8,3.1,6.9,7,7.5v2h2v-2c3.9-.6,6.8-3.7,7-7.5h-2c-.2,2.8-2.3,5-5,5.4h-2Z" />
                 </svg>
+            </button>
+
+            <!-- ⏹ Sentinel Interrupt Button — shows when agent is running -->
+            <button
+                class="chat-button stop-button"
+                id="stop-button"
+                aria-label="Interrupt agent"
+                x-show="$store.chats.selectedContext?.running"
+                x-transition:enter="stop-btn-enter"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="stop-btn-leave"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                @click="$store.chatInput.pauseAgent(!$store.chatInput.paused)"
+                :title="$store.chatInput.paused ? 'Resume agent' : 'Interrupt agent'"
+                :class="{ 'paused': $store.chatInput.paused }">
+                <!-- Stop icon when running -->
+                <template x-if="!$store.chatInput.paused">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <rect x="4" y="4" width="16" height="16" rx="2"/>
+                    </svg>
+                </template>
+                <!-- Play icon when paused -->
+                <template x-if="$store.chatInput.paused">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </template>
             </button>
         </div>
     </div>
@@ -126,6 +156,50 @@
       #chat-buttons-wrapper { display: flex; gap: var(--spacing-xs); padding: 0 0 0 var(--spacing-sm) !important; width: 3.5rem; flex-wrap: wrap; -webkit-transition: all 0.3s ease; transition: all 0.3s ease; }
     }
     @media (min-width: 768px) { #chat-buttons-wrapper { flex-wrap: nowrap; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; } }
+
+    /* ── Sentinel Interrupt / Stop Button ── */
+    #stop-button {
+        background-color: #ef4444;
+        color: #fff;
+        position: relative;
+        overflow: visible;
+        display: none; /* hidden by default, x-show controls visibility */
+    }
+    #stop-button[style*="display: flex"],
+    #stop-button[style*="display:flex"] {
+        display: flex !important;
+    }
+    #stop-button::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        border: 2px solid rgba(239, 68, 68, 0.55);
+        animation: stop-pulse 1.4s ease-in-out infinite;
+    }
+    #stop-button.paused {
+        background-color: #f59e0b;
+        animation: none;
+    }
+    #stop-button.paused::before {
+        border-color: rgba(245, 158, 11, 0.55);
+        animation: none;
+    }
+    #stop-button:hover {
+        background-color: #dc2626 !important;
+        transform: scale(1.08);
+    }
+    #stop-button.paused:hover {
+        background-color: #d97706 !important;
+    }
+    #stop-button:active { transform: scale(0.96); }
+    @keyframes stop-pulse {
+        0%   { transform: scale(1);    opacity: 0.8; }
+        50%  { transform: scale(1.35); opacity: 0;   }
+        100% { transform: scale(1);    opacity: 0;   }
+    }
+    /* fade in/out transitions */
+    .stop-btn-enter, .stop-btn-leave { transition: opacity 0.25s ease; }
     </style>
 </body>
 </html>
