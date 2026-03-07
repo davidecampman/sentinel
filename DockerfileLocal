@@ -24,8 +24,6 @@ RUN bash /ins/install_additional.sh $BRANCH
 ARG CACHE_DATE=none
 RUN echo "cache buster $CACHE_DATE" && bash /ins/install_A02.sh $BRANCH
 
-# install Docker CLI for build-and-push skill
-RUN apt-get update -qq && apt-get install -y --no-install-recommends docker.io && rm -rf /var/lib/apt/lists/*
 
 # post installation steps
 RUN bash /ins/post_install.sh $BRANCH
