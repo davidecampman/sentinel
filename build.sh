@@ -3,6 +3,7 @@
 #
 # Usage:
 #   ./build.sh                          # builds agent-zero-hardened:YYYYMMDD
+#   ./build.sh --latest                 # also updates agent-zero-hardened:latest
 #   ./build.sh --push dockerhub-user    # builds + pushes date-tagged image to Docker Hub
 #   ./build.sh --no-cache               # forces full rebuild
 #
@@ -16,12 +17,14 @@ set -euo pipefail
 LOCAL_IMAGE="agent-zero-hardened:$(date +%Y%m%d)"
 NO_CACHE=""
 PUSH=false
+TAG_LATEST=false
 DOCKER_USER=""
 
 for arg in "$@"; do
   case $arg in
     --no-cache)     NO_CACHE="--no-cache" ;;
     --push)         PUSH=true ;;
+    --latest)       TAG_LATEST=true ;;
     *)              if $PUSH && [ -z "$DOCKER_USER" ]; then DOCKER_USER="$arg"; fi ;;
   esac
 done
@@ -36,8 +39,11 @@ docker build \
 
 echo ""
 echo "Build complete: $LOCAL_IMAGE"
-docker tag "$LOCAL_IMAGE" "agent-zero-hardened:latest"
-echo "Tagged:  agent-zero-hardened:latest -> $LOCAL_IMAGE"
+
+if $TAG_LATEST; then
+  docker tag "$LOCAL_IMAGE" "agent-zero-hardened:latest"
+  echo "Tagged:  agent-zero-hardened:latest -> $LOCAL_IMAGE"
+fi
 
 if $PUSH; then
   if [ -z "$DOCKER_USER" ]; then
