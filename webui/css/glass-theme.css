@@ -388,3 +388,206 @@ tr:hover {
 .icons-section {
   background: transparent !important;
 }
+
+/* ═══════════════════════════════════════════════
+   LIGHT MODE GLASS THEME
+   Frosted white glass on soft blue-gray gradient
+   ═══════════════════════════════════════════════ */
+
+.light-mode body,
+body.light-mode {
+  background: linear-gradient(135deg,
+    #e8f0f7 0%, #ddeaf5 25%, #cfdff0 50%,
+    #ddeaf5 75%, #e8f0f7 100%) !important;
+  background-attachment: fixed !important;
+}
+
+.light-mode {
+  --color-background:   rgba(255, 255, 255, 0.50) !important;
+  --color-panel:        rgba(255, 255, 255, 0.60) !important;
+  --color-secondary:    rgba(240, 246, 252, 0.65) !important;
+  --color-border:       rgba(45, 212, 191, 0.22) !important;
+  --color-highlight:    #0f9683 !important;
+  --color-input:        rgba(255, 255, 255, 0.70) !important;
+  --color-text:         #1e293b !important;
+  --color-text-muted:   #4a5568 !important;
+  --color-primary:      #334155 !important;
+}
+
+.light-mode #left-panel {
+  background: rgba(240, 248, 255, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-right: 1px solid rgba(45, 212, 191, 0.20) !important;
+  box-shadow: 4px 0 24px rgba(100, 150, 200, 0.15);
+}
+
+.light-mode .message-text {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  box-shadow: 0 4px 16px rgba(100, 150, 200, 0.15);
+  color: #1e293b !important;
+}
+
+.light-mode .message-user .message-text {
+  background: rgba(220, 242, 255, 0.70) !important;
+  border-color: rgba(45, 212, 191, 0.28) !important;
+}
+
+.light-mode #chat-input,
+.light-mode .chat-input-wrapper,
+.light-mode #input-area,
+.light-mode .input-area {
+  background: rgba(240, 248, 255, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.18) !important;
+}
+
+.light-mode textarea,
+.light-mode input[type="text"],
+.light-mode input[type="password"],
+.light-mode .chat-input {
+  background: rgba(255, 255, 255, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  border-radius: 8px !important;
+  color: #1e293b !important;
+}
+
+.light-mode textarea:focus,
+.light-mode input[type="text"]:focus,
+.light-mode input[type="password"]:focus {
+  border-color: rgba(15, 150, 131, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(15, 150, 131, 0.10) !important;
+  filter: none !important;
+}
+
+.light-mode select {
+  background: rgba(255, 255, 255, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  border-radius: 8px !important;
+  color: #1e293b !important;
+}
+
+.light-mode .modal {
+  background: rgba(240, 248, 255, 0.94) !important;
+  backdrop-filter: blur(32px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(160%) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+  box-shadow: 0 32px 80px rgba(100, 150, 200, 0.30),
+              inset 0 1px 0 rgba(255, 255, 255, 0.80) !important;
+}
+
+.light-mode .modal-header {
+  background: rgba(220, 238, 252, 0.70) !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.18) !important;
+}
+
+.light-mode .settings-tabs {
+  background: rgba(220, 238, 252, 0.60) !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.20) !important;
+}
+
+.light-mode .settings-tab {
+  color: rgba(50, 70, 100, 0.70) !important;
+}
+
+.light-mode .settings-tab:hover {
+  background: rgba(45, 212, 191, 0.08) !important;
+  color: #0f9683 !important;
+}
+
+.light-mode .settings-tab.active {
+  border-bottom: 3px solid #0f9683 !important;
+  color: #0f9683 !important;
+  background: transparent !important;
+}
+
+.light-mode nav ul li a {
+  background: rgba(255, 255, 255, 0.68) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.20) !important;
+  border-radius: 10px !important;
+  color: #1e293b !important;
+  box-shadow: 0 2px 8px rgba(100, 150, 200, 0.10) !important;
+}
+
+.light-mode nav ul li a:hover {
+  background: rgba(220, 245, 242, 0.88) !important;
+  border-color: rgba(15, 150, 131, 0.40) !important;
+  box-shadow: 0 6px 24px rgba(15, 150, 131, 0.12) !important;
+}
+
+.light-mode .section {
+  background: rgba(255, 255, 255, 0.58) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  box-shadow: 0 4px 20px rgba(100, 150, 200, 0.10) !important;
+}
+
+.light-mode .section-title {
+  color: #1e293b !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.15) !important;
+}
+
+.light-mode .section-description,
+.light-mode .field-description {
+  color: rgba(60, 80, 110, 0.75) !important;
+}
+
+.light-mode .field {
+  border-bottom: 1px solid rgba(45, 212, 191, 0.10) !important;
+  background: transparent !important;
+}
+
+.light-mode .field-title {
+  color: #1e293b !important;
+}
+
+.light-mode button.primary,
+.light-mode .btn.primary,
+.light-mode .btn-primary {
+  background: #0f9683 !important;
+  border-color: #0b7a6a !important;
+  color: #ffffff !important;
+}
+
+.light-mode button.primary:hover,
+.light-mode .btn.primary:hover {
+  background: #0b7a6a !important;
+  box-shadow: 0 4px 20px rgba(15, 150, 131, 0.35) !important;
+}
+
+.light-mode button.cancel,
+.light-mode .btn.cancel {
+  background: rgba(220, 235, 248, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  color: #334155 !important;
+}
+
+.light-mode .welcome-action-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  box-shadow: 0 8px 32px rgba(100, 150, 200, 0.12) !important;
+}
+
+.light-mode .welcome-action-card:hover {
+  background: rgba(220, 245, 242, 0.82) !important;
+  border-color: rgba(15, 150, 131, 0.35) !important;
+  box-shadow: 0 12px 40px rgba(15, 150, 131, 0.12) !important;
+}
+
+.light-mode pre,
+.light-mode code {
+  background: rgba(220, 238, 255, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  color: #1e293b !important;
+}
+
+.light-mode ::-webkit-scrollbar-track { background: rgba(200, 220, 240, 0.3); }
+.light-mode ::-webkit-scrollbar-thumb { background: rgba(15, 150, 131, 0.30); }
+.light-mode ::-webkit-scrollbar-thumb:hover { background: rgba(15, 150, 131, 0.50); }
