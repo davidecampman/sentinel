@@ -75,12 +75,47 @@ _stub("python.helpers.whisper")
 _stub("python.helpers.git")
 _stub("python.helpers.providers")
 _stub("python.helpers.secrets")
-_stub("python.helpers.print_style")
 _stub("python.helpers.notification")
 _stub("python.helpers.subagents")
 _stub("python.helpers.task_scheduler")
 _stub("python.helpers.mcp_handler")
 _stub("python.helpers.tunnel_manager")
+# ---------------------------------------------------------------------------
+# External packages not installed in the lightweight test env
+# ---------------------------------------------------------------------------
+_stub("html2text")
+_stub("pathspec")
+_stub("engineio")
+
+# flask — expose Flask and Response as MagicMock classes
+_flask = _stub("flask")
+_flask.Flask = MagicMock(name="Flask")
+_flask.Response = MagicMock(name="Response")
+_flask.Blueprint = MagicMock(name="Blueprint")
+_flask.request = MagicMock(name="request")
+_flask.jsonify = MagicMock(name="jsonify")
+
+# socketio
+_socketio = _stub("socketio")
+_socketio.Server = MagicMock(name="Server")
+_socketio.ASGIApp = MagicMock(name="ASGIApp")
+
+# python-socketio
+_stub("python_socketio")
+
+# uvicorn
+_uvicorn = _stub("uvicorn")
+_uvicorn.run = MagicMock(name="run")
+
+# simpleeval — expose simple_eval function
+import sys as _sys
+if "simpleeval" in _sys.modules:
+    _simpleeval = _sys.modules["simpleeval"]
+    if not hasattr(_simpleeval, "simple_eval") or _simpleeval.simple_eval.__class__.__name__ == "MagicMock":
+        _simpleeval.simple_eval = MagicMock(name="simple_eval")
+        _simpleeval.SimpleEval = MagicMock(name="SimpleEval")
+        _simpleeval.EvalWithCompoundTypes = MagicMock(name="EvalWithCompoundTypes")
+
 
 # ---------------------------------------------------------------------------
 # python.helpers.settings — stub with a real get_settings callable so that

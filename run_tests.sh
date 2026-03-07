@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Run Agent Zero Corporate Edition security test suite
+# run_tests.sh — Run Agent Zero Corporate Edition security test suite
 # Uses the system python with lightweight conftest stubs
 
 set -e
 COLOR_GREEN="\033[0;32m"
-COLOR_RED="\033[0;31m"
 COLOR_RESET="\033[0m"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo -e "${COLOR_GREEN}Running Agent Zero Corporate Edition security tests...${COLOR_RESET}"
