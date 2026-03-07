@@ -10,20 +10,12 @@ set -euo pipefail
 
 TEST_CONTAINER="agent-zero-test"
 TEST_PORT="50081"
-ENV_FILE=".env"
-
-ENV_ARGS=""
-if [ -f "$ENV_FILE" ]; then
-  ENV_ARGS="--env-file ../../.env"
-else
-  echo "WARNING: .env not found — using defaults. Configure credentials in the UI."
-fi
 
 if [ "${1:-}" = "--stop" ]; then
   echo "==> Stopping test instance ..."
   cd docker/run
   CONTAINER_NAME="$TEST_CONTAINER" PORT="$TEST_PORT" COMPOSE_PROJECT_NAME="agent-zero-test" \
-    docker compose $ENV_ARGS -f docker-compose.yml -f docker-compose.dev.yml \
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml \
     down
   echo "Stopped."
   exit 0
@@ -53,7 +45,6 @@ echo ""
 
 cd docker/run
 docker compose \
-  $ENV_ARGS \
   -f docker-compose.yml \
   -f docker-compose.dev.yml \
   up -d

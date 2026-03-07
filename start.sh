@@ -3,14 +3,6 @@
 
 set -euo pipefail
 
-ENV_FILE=".env"
-ENV_ARGS=""
-if [ -f "$ENV_FILE" ]; then
-  ENV_ARGS="--env-file ../../.env"
-else
-  echo "WARNING: .env not found — using defaults. Configure credentials in the UI."
-fi
-
 echo "What do you want to start?"
 echo "  1) Prod  (port 50080, image from .env)"
 echo "  2) Test  (port 50081, latest date-tagged image)"
@@ -54,7 +46,6 @@ echo ""
 
 cd docker/run
 docker compose \
-  $ENV_ARGS \
   -f docker-compose.yml \
   -f docker-compose.dev.yml \
   up -d

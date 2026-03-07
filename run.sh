@@ -7,22 +7,13 @@
 
 set -euo pipefail
 
-ENV_FILE=".env"
 AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}"
-
-ENV_ARGS=""
-if [ -f "$ENV_FILE" ]; then
-  ENV_ARGS="--env-file ../../.env"
-else
-  echo "WARNING: .env not found — using defaults (admin/changeme). Configure credentials in the UI."
-fi
 
 export AGENT_ZERO_IMAGE
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agent-zero}"
 
 cd docker/run
 docker compose \
-  $ENV_ARGS \
   -f docker-compose.yml \
   -f docker-compose.dev.yml \
   up -d
