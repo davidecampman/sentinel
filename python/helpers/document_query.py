@@ -2,6 +2,7 @@ import mimetypes
 import os
 import asyncio
 import aiohttp
+from python.helpers import tls as _tls
 import json
 
 from python.helpers.vector_db import VectorDB
@@ -458,7 +459,7 @@ class DocumentQueryHelper:
                 last_error = ""
                 while not response and retries < 3:
                     try:
-                        async with aiohttp.ClientSession() as session:
+                        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_tls.get_aiohttp_connector_kwargs())) as session:
                             response = await session.head(
                                 document_uri,
                                 timeout=aiohttp.ClientTimeout(total=2.0),
@@ -607,7 +608,7 @@ class DocumentQueryHelper:
             import tempfile
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-                response = requests.get(document, timeout=10.0)
+                response = requests.get(document, timeout=10.0, verify=_tls.get_verify())
                 if response.status_code != 200:
                     raise ValueError(
                         f"DocumentQueryHelper::handle_pdf_document: Failed to download PDF from {document}: {response.status_code}"

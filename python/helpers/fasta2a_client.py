@@ -5,6 +5,7 @@ from python.helpers.print_style import PrintStyle
 try:
     from fasta2a.client import A2AClient  # type: ignore
     import httpx  # type: ignore
+    from python.helpers import tls as _tls
     FASTA2A_CLIENT_AVAILABLE = True
 except ImportError:
     FASTA2A_CLIENT_AVAILABLE = False
@@ -40,7 +41,7 @@ class AgentConnection:
         if token:
             headers["Authorization"] = f"Bearer {token}"
             headers["X-API-KEY"] = token
-        self._http_client = httpx.AsyncClient(timeout=timeout, headers=headers)  # type: ignore
+        self._http_client = httpx.AsyncClient(timeout=timeout, headers=headers, verify=_tls.get_verify())  # type: ignore
         self._a2a_client = A2AClient(base_url=self.agent_url, http_client=self._http_client)  # type: ignore
         self._agent_card: Optional[Dict[str, Any]] = None
         # Track conversation context automatically

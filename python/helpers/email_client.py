@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import html2text
 from bs4 import BeautifulSoup
 from imapclient import IMAPClient
+from python.helpers import tls as _tls
 
 from python.helpers import files
 from python.helpers.errors import RepairableException, format_error
@@ -91,7 +92,8 @@ class EmailClient:
         loop = asyncio.get_event_loop()
 
         def _sync_connect():
-            client = IMAPClient(self.server, port=self.port, ssl=self.ssl, timeout=self.timeout)
+            _ssl_ctx = _tls.get_imap_ssl_context() if self.ssl else None
+            client = IMAPClient(self.server, port=self.port, ssl=self.ssl, ssl_context=_ssl_ctx, timeout=self.timeout)
             # Increase line length limit to handle large emails (default is 10000)
             # This fixes "line too long" errors for emails with large headers or embedded content
             client._imap._maxline = 100000

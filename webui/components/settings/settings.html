@@ -54,6 +54,10 @@
                  :class="{'active': $store.settings.activeTab === 'backup'}"
                  @click="$store.settings.switchTab('backup')"
                  title="Backup & Restore">Backup & Restore</div>
+            <div class="settings-tab"
+                 :class="{'active': $store.settings.activeTab === 'network'}"
+                 @click="$store.settings.switchTab('network')"
+                 title="Network">Network</div>
           </div>
         </div>
 
@@ -76,6 +80,9 @@
           </div>
           <div x-show="$store.settings.activeTab === 'skills'">
             <x-component path="settings/skills/skills-settings.html"></x-component>
+          </div>
+          <div x-show="$store.settings.activeTab === 'network'">
+            <x-component path="settings/network/network-settings.html"></x-component>
           </div>
         </div>
       </div>

@@ -158,6 +158,10 @@ class Settings(TypedDict):
 
     update_check_enabled: bool
 
+    # Corporate TLS settings
+    tls_verify: bool       # False = skip verification, True = use ca bundle or system certs
+    tls_ca_bundle: str     # Absolute path to PEM CA bundle; empty = system/certifi default
+
 
 class PartialSettings(Settings, total=False):
     pass
@@ -599,11 +603,16 @@ def get_default_settings() -> Settings:
         secrets="",
         litellm_global_kwargs=get_default_value("litellm_global_kwargs", {}),
         update_check_enabled=get_default_value("update_check_enabled", True),
+        tls_verify=get_default_value("tls_verify", True),
+        tls_ca_bundle=get_default_value("tls_ca_bundle", ""),
     )
 
 
 def _apply_settings(previous: Settings | None):
     global _settings
+    # Apply TLS environment variables whenever settings change.
+    from python.helpers import tls as _tls
+    _tls.apply_env_vars()
     if _settings:
         from agent import AgentContext
         from initialize import initialize_agent

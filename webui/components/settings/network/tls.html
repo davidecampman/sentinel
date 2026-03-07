@@ -1,0 +1,212 @@
+<html>
+  <head>
+    <title>TLS / Certificate Settings</title>
+  </head>
+
+  <body>
+    <div
+      x-data="{
+        get settings() { return $store.settings.settings },
+        get additional() { return $store.settings.additional || {} },
+        caBundle: '',
+        uploading: false,
+        uploadError: '',
+        uploadSuccess: '',
+        async uploadCert(event) {
+          this.uploading = true;
+          this.uploadError = '';
+          this.uploadSuccess = '';
+          const file = event.target.files[0];
+          if (!file) { this.uploading = false; return; }
+          const formData = new FormData();
+          formData.append('file', file);
+          try {
+            const resp = await fetch('/upload_cert', { method: 'POST', body: formData });
+            if (resp.ok) {
+              const data = await resp.json();
+              const path = data.path || data.file_path || '';
+              if (path) {
+                this.settings.tls_ca_bundle = path;
+                this.uploadSuccess = 'Certificate uploaded: ' + path;
+              } else {
+                this.uploadError = 'Upload succeeded but no path returned.';
+              }
+            } else {
+              this.uploadError = 'Upload failed: ' + resp.statusText;
+            }
+          } catch(e) {
+            this.uploadError = 'Upload error: ' + e.message;
+          }
+          this.uploading = false;
+        }
+      }"
+    >
+      <template x-if="settings">
+        <div>
+          <div class="section-title">TLS / Certificate Verification</div>
+          <div class="section-description">
+            Configure how Agent Zero verifies TLS certificates for all outbound
+            HTTPS connections (API calls, MCP, browser agent, search, email, etc.).
+            In corporate environments with TLS inspection, provide your CA bundle
+            or disable verification as a temporary measure.
+          </div>
+
+          <!-- Verify toggle -->
+          <div class="field">
+            <div class="field-label">
+              <div class="field-title">Verify TLS Certificates</div>
+              <div class="field-description">
+                When enabled, all HTTPS connections verify the server certificate.
+                Disable only if your network performs TLS inspection and you cannot
+                provide a custom CA bundle.
+              </div>
+            </div>
+            <div class="field-control">
+              <input type="checkbox" x-model="settings.tls_verify" />
+            </div>
+          </div>
+
+          <!-- Warning banner when disabled -->
+          <template x-if="!settings.tls_verify">
+            <div class="tls-warning">
+              <span class="material-symbols-outlined">warning</span>
+              <span>
+                <strong>TLS verification is disabled.</strong>
+                All certificate errors are silently ignored.
+                This makes connections vulnerable to man-in-the-middle attacks.
+                Use a custom CA bundle instead where possible.
+              </span>
+            </div>
+          </template>
+
+          <!-- CA Bundle path -->
+          <template x-if="settings.tls_verify">
+            <div>
+              <div class="field">
+                <div class="field-label">
+                  <div class="field-title">Custom CA Bundle Path</div>
+                  <div class="field-description">
+                    Absolute path to a PEM-format CA certificate bundle inside
+                    the container. Leave empty to use the system default (certifi).
+                    Example: <code>/a0/usr/certs/corporate-ca.pem</code>
+                  </div>
+                </div>
+                <div class="field-control">
+                  <input
+                    type="text"
+                    x-model="settings.tls_ca_bundle"
+                    placeholder="/a0/usr/certs/corporate-ca.pem"
+                  />
+                </div>
+              </div>
+
+              <!-- Upload CA cert -->
+              <div class="field">
+                <div class="field-label">
+                  <div class="field-title">Upload CA Certificate</div>
+                  <div class="field-description">
+                    Upload a PEM CA certificate or bundle. It will be saved to
+                    <code>/a0/usr/certs/</code> and the path set automatically.
+                  </div>
+                </div>
+                <div class="field-control">
+                  <label class="btn btn-upload" :class="{ disabled: uploading }">
+                    <span class="material-symbols-outlined">upload_file</span>
+                    <span x-text="uploading ? 'Uploading...' : 'Choose PEM file'"></span>
+                    <input
+                      type="file"
+                      accept=".pem,.crt,.cer,.ca-bundle"
+                      style="display:none"
+                      :disabled="uploading"
+                      @change="uploadCert($event)"
+                    />
+                  </label>
+                  <div class="tls-upload-success" x-show="uploadSuccess" x-text="uploadSuccess"></div>
+                  <div class="tls-upload-error" x-show="uploadError" x-text="uploadError"></div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Current effective status -->
+          <div class="tls-status">
+            <span class="material-symbols-outlined" x-text="settings.tls_verify ? 'verified_user' : 'gpp_bad'"></span>
+            <span x-show="settings.tls_verify && !settings.tls_ca_bundle">
+              Using system / certifi default CA bundle
+            </span>
+            <span x-show="settings.tls_verify && settings.tls_ca_bundle">
+              Using custom CA bundle: <code x-text="settings.tls_ca_bundle"></code>
+            </span>
+            <span x-show="!settings.tls_verify">
+              Certificate verification disabled
+            </span>
+          </div>
+
+        </div>
+      </template>
+    </div>
+  </body>
+</html>
+
+<style>
+.tls-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0 1rem 0;
+  background: rgba(231, 76, 60, 0.12);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 6px;
+  color: var(--color-error, #e74c3c);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tls-warning .material-symbols-outlined {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.tls-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-secondary, rgba(255,255,255,0.05));
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #aaa);
+}
+
+.tls-status .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.tls-upload-success {
+  margin-top: 0.4rem;
+  color: var(--color-success, #2ecc71);
+  font-size: 0.85rem;
+}
+
+.tls-upload-error {
+  margin-top: 0.4rem;
+  color: var(--color-error, #e74c3c);
+  font-size: 0.85rem;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  padding: 0.4rem 0.9rem;
+}
+
+.btn-upload.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

@@ -40,3 +40,10 @@ agent_history.gif
 
 .agent/**
 .claude/**
+
+# Corporate CA certificates (uploaded at runtime, not committed)
+usr/certs/*.pem
+usr/certs/*.crt
+usr/certs/*.cer
+usr/certs/*.ca-bundle
+usr/certs/*.cert

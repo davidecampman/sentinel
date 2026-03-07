@@ -2,6 +2,7 @@ from python.helpers.api import ApiHandler, Request, Response
 from python.helpers import dotenv, runtime
 from python.helpers.tunnel_manager import TunnelManager
 import requests
+from python.helpers import tls as _tls
 
 
 class TunnelProxy(ApiHandler):
@@ -19,7 +20,7 @@ async def process(input: dict) -> dict | Response:
     # first verify the service is running:
     service_ok = False
     try:
-        response = requests.post(f"http://localhost:{tunnel_api_port}/", json={"action": "health"})
+        response = requests.post(f"http://localhost:{tunnel_api_port}/", json={"action": "health"}, verify=_tls.get_verify())
         if response.status_code == 200:
             service_ok = True
     except Exception as e:
@@ -28,7 +29,7 @@ async def process(input: dict) -> dict | Response:
     # forward this request to the tunnel service if OK
     if service_ok:
         try:
-            response = requests.post(f"http://localhost:{tunnel_api_port}/", json=input)
+            response = requests.post(f"http://localhost:{tunnel_api_port}/", json=input, verify=_tls.get_verify())
             return response.json()
         except Exception as e:
             return {"error": str(e)}

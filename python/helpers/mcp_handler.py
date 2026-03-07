@@ -26,6 +26,7 @@ from python.helpers import settings
 from python.helpers.log import LogItem
 
 import httpx
+from python.helpers import tls as _tls
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -1076,7 +1077,10 @@ class CustomHTTPClientFactory(ABC):
         if auth is not None:
             kwargs["auth"] = auth
 
-        return httpx.AsyncClient(**kwargs, verify=self.verify)
+        # Use global TLS setting unless server explicitly disables verification
+        _global_verify = _tls.get_verify()
+        effective_verify = self.verify if not self.verify else _global_verify
+        return httpx.AsyncClient(**kwargs, verify=effective_verify)
 
 class MCPClientRemote(MCPClientBase):
 

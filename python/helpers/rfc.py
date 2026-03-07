@@ -3,6 +3,7 @@ import inspect
 import json
 from typing import Any, TypedDict
 import aiohttp
+from python.helpers import tls as _tls
 from python.helpers import crypto
 
 from python.helpers import dotenv
@@ -87,7 +88,7 @@ def _get_function(module: str, function_name: str):
 
 
 async def _send_json_data(url: str, data):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_tls.get_aiohttp_connector_kwargs())) as session:
         async with session.post(
             url,
             json=data,

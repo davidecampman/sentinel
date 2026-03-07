@@ -1,5 +1,6 @@
 import asyncio
 import os
+from python.helpers import tls as _tls
 import time
 from typing import Optional, cast
 from agent import Agent, InterventionException
@@ -61,6 +62,8 @@ class State:
         self.browser_session = browser_use.BrowserSession(
             browser_profile=browser_use.BrowserProfile(
                 headless=True,
+                # Add TLS args (e.g. --ignore-certificate-errors when tls_verify=False)
+                args=chrome_args + _tls.get_playwright_args(),
                 disable_security=False,
                 # chromium_sandbox must remain False: Chrome cannot sandbox
                 # when the container process runs as root (Docker constraint).
