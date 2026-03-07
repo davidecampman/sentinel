@@ -2,6 +2,7 @@
  * Sentinel Glass Theme
  * Frosted glass aesthetic for Sentinel Corporate Edition
  * Dark navy base with teal (#2DD4BF) accent
+ * v2 — cleaner settings, no per-field boxing
  */
 
 /* ─── Base: rich dark gradient behind everything ─── */
@@ -23,47 +24,30 @@ body {
   --color-background-dark:    rgba(10, 18, 40, 0.55);
   --color-panel:              rgba(15, 25, 55, 0.60) !important;
   --color-panel-dark:         rgba(15, 25, 55, 0.60);
+  --color-secondary:          rgba(20, 35, 75, 0.50) !important;
+  --color-secondary-dark:     rgba(20, 35, 75, 0.50);
   --color-chat-background:    rgba(5, 12, 28, 0.40) !important;
-  --color-chat-background-dark: rgba(5, 12, 28, 0.40);
   --color-message-bg:         rgba(20, 35, 70, 0.55) !important;
-  --color-message-bg-dark:    rgba(20, 35, 70, 0.55);
   --color-input:              rgba(10, 20, 45, 0.70) !important;
-  --color-input-dark:         rgba(10, 20, 45, 0.70);
-  --color-input-focus:        rgba(15, 28, 60, 0.80) !important;
-  --color-input-focus-dark:   rgba(15, 28, 60, 0.80);
-  --color-border:             rgba(45, 212, 191, 0.18) !important;
-  --color-border-dark:        rgba(45, 212, 191, 0.18);
+  --color-border:             rgba(45, 212, 191, 0.15) !important;
+  --color-border-dark:        rgba(45, 212, 191, 0.15);
   --color-highlight:          #2DD4BF !important;
   --color-highlight-dark:     #2DD4BF;
   --color-accent:             #2DD4BF !important;
   --color-table-row:          rgba(20, 35, 70, 0.45) !important;
 }
 
-/* ─── Glass mixin (applied to panels) ─── */
-.glass {
-  background: rgba(15, 25, 55, 0.55) !important;
-  backdrop-filter: blur(18px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
-  border: 1px solid rgba(45, 212, 191, 0.15) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-              inset 0 1px 0 rgba(45, 212, 191, 0.08) !important;
-}
-
 /* ─── Left Sidebar ─── */
 #left-panel {
-  background: rgba(10, 18, 40, 0.65) !important;
+  background: rgba(8, 15, 35, 0.80) !important;
   backdrop-filter: blur(20px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  border-right: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-right: 1px solid rgba(45, 212, 191, 0.12) !important;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
 }
 
 /* ─── Right Panel / Main Area ─── */
-#right-panel {
-  background: transparent !important;
-}
-
-/* ─── Chat History ─── */
+#right-panel,
 #chat-history {
   background: transparent !important;
 }
@@ -73,15 +57,14 @@ body {
   background: rgba(15, 28, 60, 0.60) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.15) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(45, 212, 191, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   border-radius: 12px !important;
 }
 
 .message-user .message-text {
-  background: rgba(30, 45, 90, 0.65) !important;
-  border-color: rgba(45, 212, 191, 0.25) !important;
+  background: rgba(30, 45, 90, 0.60) !important;
+  border-color: rgba(45, 212, 191, 0.20) !important;
 }
 
 /* ─── Input Area ─── */
@@ -89,10 +72,10 @@ body {
 .chat-input-wrapper,
 #input-area,
 .input-area {
-  background: rgba(10, 18, 40, 0.75) !important;
+  background: rgba(8, 15, 38, 0.85) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.12) !important;
 }
 
 textarea,
@@ -100,8 +83,8 @@ input[type="text"],
 input[type="password"],
 .chat-input {
   background: rgba(10, 20, 50, 0.70) !important;
-  border: 1px solid rgba(45, 212, 191, 0.20) !important;
-  border-radius: 10px !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  border-radius: 8px !important;
   color: #e2e8f0 !important;
 }
 
@@ -111,146 +94,297 @@ input[type="password"]:focus {
   border-color: rgba(45, 212, 191, 0.45) !important;
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.08) !important;
   outline: none !important;
+  filter: none !important;
 }
 
-/* ─── Welcome Screen Cards ─── */
-.welcome-action-card {
-  background: rgba(15, 25, 60, 0.55) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+select {
+  background: rgba(10, 20, 50, 0.75) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  border-radius: 8px !important;
+  color: #e2e8f0 !important;
+}
+
+select:focus {
+  border-color: rgba(45, 212, 191, 0.45) !important;
+  outline: none !important;
+}
+
+/* ─── SETTINGS MODAL ─── */
+
+/* Modal overlay backdrop */
+.modal-overlay,
+.modal-backdrop {
+  background: rgba(2, 6, 18, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Modal outer shell */
+.modal {
+  background: rgba(8, 14, 35, 0.92) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7),
+              inset 0 1px 0 rgba(45, 212, 191, 0.08) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-              inset 0 1px 0 rgba(45, 212, 191, 0.06) !important;
+}
+
+/* Modal inner wrapper */
+.modal-inner {
+  background: transparent !important;
+}
+
+/* Modal header */
+.modal-header {
+  background: rgba(10, 18, 45, 0.60) !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12) !important;
+}
+
+/* Settings content area */
+.settings-content {
+  background: transparent !important;
+}
+
+/* ─── Settings Tabs ─── */
+.settings-tabs-container {
+  background: transparent !important;
+}
+
+.settings-tabs {
+  background: rgba(8, 15, 38, 0.60) !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.settings-tab {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  color: rgba(180, 200, 220, 0.65) !important;
+  transition: all 0.2s ease !important;
+  border-radius: 0 !important;
+}
+
+.settings-tab:hover {
+  background: rgba(45, 212, 191, 0.06) !important;
+  color: rgba(45, 212, 191, 0.85) !important;
+}
+
+.settings-tab.active {
+  background: transparent !important;
+  border-bottom: 3px solid #2DD4BF !important;
+  color: #2DD4BF !important;
+}
+
+/* ─── Settings Sections container ─── */
+#settings-sections {
+  background: transparent !important;
+}
+
+/* ─── Settings Nav Icon Cards ─── */
+nav ul li a {
+  background: rgba(12, 22, 52, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-radius: 10px !important;
   transition: all 0.25s ease !important;
 }
 
-.welcome-action-card:hover {
-  background: rgba(20, 35, 80, 0.70) !important;
+nav ul li a:hover {
+  background: rgba(20, 38, 85, 0.80) !important;
   border-color: rgba(45, 212, 191, 0.40) !important;
-  box-shadow: 0 12px 40px rgba(45, 212, 191, 0.12),
-              0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 6px 24px rgba(45, 212, 191, 0.12) !important;
   transform: translateY(-2px) !important;
 }
 
+/* ─── Settings .section blocks ─── */
+.section {
+  background: rgba(10, 20, 48, 0.55) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.10) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.section-title {
+  color: #e2e8f0 !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12) !important;
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.section-description {
+  color: rgba(180, 200, 220, 0.70) !important;
+}
+
+/* ─── Settings .field rows — NO individual boxing ─── */
+.field {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.06) !important;
+  padding: 0.65rem 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.field:last-child {
+  border-bottom: none !important;
+}
+
+.field-title {
+  color: #c8d8e8 !important;
+}
+
+.field-description {
+  color: rgba(150, 175, 200, 0.65) !important;
+}
+
+/* ─── Settings Save/Cancel footer ─── */
+.modal > div:last-child,
+.modal-footer,
+[class*="modal"] .btn-row,
+[class*="modal"] > div:last-child {
+  background: rgba(8, 14, 35, 0.80) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.12) !important;
+}
+
+/* ─── Buttons ─── */
+button.primary,
+.btn.primary,
+.btn-primary {
+  background: rgba(45, 212, 191, 0.85) !important;
+  border: 1px solid rgba(45, 212, 191, 0.5) !important;
+  color: #050d1a !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+button.primary:hover,
+.btn.primary:hover,
+.btn-primary:hover {
+  background: #2DD4BF !important;
+  box-shadow: 0 4px 20px rgba(45, 212, 191, 0.35) !important;
+}
+
+button.cancel,
+.btn.cancel,
+.btn-cancel {
+  background: rgba(30, 45, 85, 0.70) !important;
+  border: 1px solid rgba(45, 212, 191, 0.20) !important;
+  color: #c8d8e8 !important;
+  border-radius: 8px !important;
+}
+
+button.cancel:hover,
+.btn.cancel:hover {
+  background: rgba(40, 60, 110, 0.80) !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+}
+
+/* Send button */
+[class*="send"],
+[class*="submit"] {
+  background: rgba(45, 212, 191, 0.85) !important;
+  border: 1px solid rgba(45, 212, 191, 0.5) !important;
+  color: #050d1a !important;
+}
+
+/* ─── Welcome Screen ─── */
 .welcome-container {
   background: transparent !important;
 }
 
-/* ─── Settings Panels ─── */
-.settings-panel,
-.settings-content,
-.section,
-.field,
-[class*="settings"] .section {
-  background: rgba(12, 20, 48, 0.60) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.12) !important;
-  border-radius: 12px !important;
+.welcome-action-card {
+  background: rgba(12, 22, 52, 0.60) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.25s ease !important;
 }
 
-/* ─── Modals ─── */
-.modal,
-.modal-content,
-[class*="modal"] {
-  background: rgba(10, 18, 45, 0.88) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(45, 212, 191, 0.20) !important;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6) !important;
+.welcome-action-card:hover {
+  background: rgba(18, 34, 78, 0.75) !important;
+  border-color: rgba(45, 212, 191, 0.38) !important;
+  box-shadow: 0 12px 40px rgba(45, 212, 191, 0.10),
+              0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(-2px) !important;
 }
 
-/* ─── Dropdowns / Select menus ─── */
-.dropdown,
-select,
-.select-wrapper {
-  background: rgba(12, 22, 52, 0.85) !important;
+/* ─── Toggle button (sidebar) ─── */
+.toggle-sidebar-button {
+  background: rgba(15, 25, 55, 0.70) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+}
+
+.toggle-sidebar-button:hover {
+  background: rgba(25, 40, 80, 0.80) !important;
+  border-color: rgba(45, 212, 191, 0.30) !important;
+}
+
+/* ─── Dropdowns ─── */
+.dropdown {
+  background: rgba(8, 16, 42, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ─── Notifications / Toasts ─── */
+.toast,
+.notification {
+  background: rgba(8, 15, 40, 0.94) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.20) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ─── Code blocks ─── */
+pre, code {
+  background: rgba(4, 10, 28, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 8px !important;
+}
+
+/* ─── Tables ─── */
+tr:nth-child(even) {
+  background: rgba(20, 35, 75, 0.35) !important;
+}
+tr:hover {
+  background: rgba(30, 50, 100, 0.40) !important;
 }
 
 /* ─── Scrollbars ─── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: rgba(10, 18, 40, 0.3); }
 ::-webkit-scrollbar-thumb {
-  background: rgba(45, 212, 191, 0.25);
+  background: rgba(45, 212, 191, 0.22);
   border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(45, 212, 191, 0.45); }
+::-webkit-scrollbar-thumb:hover { background: rgba(45, 212, 191, 0.42); }
 
-/* ─── Buttons ─── */
-button.primary,
-.btn-primary,
-[class*="send"],
-[class*="submit"] {
-  background: rgba(45, 212, 191, 0.85) !important;
-  border: 1px solid rgba(45, 212, 191, 0.5) !important;
-  color: #050d1a !important;
-  backdrop-filter: blur(8px) !important;
-  border-radius: 8px !important;
-}
-
-button.primary:hover,
-.btn-primary:hover {
-  background: rgba(45, 212, 191, 1.0) !important;
-  box-shadow: 0 4px 20px rgba(45, 212, 191, 0.35) !important;
-}
-
-/* ─── Toggle buttons (sidebar) ─── */
-.toggle-sidebar-button {
-  background: rgba(15, 25, 55, 0.70) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.18) !important;
-}
-
-.toggle-sidebar-button:hover {
-  background: rgba(25, 40, 80, 0.80) !important;
-  border-color: rgba(45, 212, 191, 0.35) !important;
-}
-
-/* ─── Notification / Toast ─── */
-.toast,
-.notification {
-  background: rgba(10, 18, 45, 0.92) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.22) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* ─── Top bar / header icons area ─── */
-#hide-button,
-.icons-section {
-  background: transparent !important;
-}
-
-/* ─── Code blocks ─── */
-pre, code {
-  background: rgba(5, 12, 30, 0.75) !important;
-  border: 1px solid rgba(45, 212, 191, 0.12) !important;
-  border-radius: 8px !important;
-}
-
-/* ─── Table rows ─── */
-tr:nth-child(even) {
-  background: rgba(20, 35, 75, 0.40) !important;
-}
-tr:hover {
-  background: rgba(30, 50, 100, 0.45) !important;
-}
-
-/* ─── Teal text highlight ─── */
-.welcome-action-icon,
+/* ─── Icons teal tint ─── */
 .material-symbols-outlined {
-  color: rgba(45, 212, 191, 0.75);
   transition: color 0.2s ease;
 }
 
-.welcome-action-card:hover .material-symbols-outlined,
-.welcome-action-card:hover .welcome-action-icon {
+.welcome-action-card:hover .material-symbols-outlined {
   color: #2DD4BF;
+}
+
+/* ─── Misc top bar ─── */
+#hide-button,
+.icons-section {
+  background: transparent !important;
 }
