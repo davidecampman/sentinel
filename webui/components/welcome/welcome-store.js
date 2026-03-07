@@ -216,7 +216,7 @@ const model = {
         chatInputStore.browseFiles();
         break;
       case "website":
-        window.open("https://agent-zero.ai", "_blank");
+        window.open("https://davidcampman.com", "_blank");
         break;
       case "github":
         window.open("https://github.com/davidecampman/agentzero", "_blank");
