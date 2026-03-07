@@ -24,6 +24,22 @@ A hardened, self-hosted fork of [Agent Zero](https://github.com/frdel/agent-zero
 
 ### TLS
 - Single config point for corporate TLS inspection — set `TLS_CA_BUNDLE` and `TLS_VERIFY` via UI or environment
+- Custom CA bundle upload via Settings → Network → TLS (supports `.pem`, `.crt`, `.cer`, `.ca-bundle`)
+- TLS settings propagated to all HTTP clients: aiohttp, httpx, requests, Playwright, IMAPClient
+
+### Security Hardening
+- **RFC endpoint disabled in production** — `/rfc` (arbitrary Python execution) blocked outside development mode; strict module allowlist (`python.helpers.*`, `python.api.*`, `python.tools.*`) enforced even in dev
+- **CSRF protection** — dual-layer validation: session token + runtime-scoped cookie using `secrets.token_urlsafe(32)`; scoped cookie names prevent session collision on shared hosts
+- **WebSocket origin validation** — RFC 6455 compliant; rejects cross-origin connections; handles reverse proxy headers (`X-Forwarded-Host`, `X-Forwarded-Proto`)
+- **DNS rebinding prevention** — origin allowlist defaulting to localhost/127.0.0.1; configurable via `ALLOWED_ORIGINS`
+- **Auth hardening** — SHA256 credential hashing; 1-second delay on failed login (brute force mitigation); session cookies with `SameSite=Strict`
+- **Loopback restriction** — sensitive endpoints restricted to loopback via `requires_loopback()` decorator
+- **API key authentication** — `requires_api_key()` decorator with `X-API-KEY` header validation for MCP/API endpoints
+- **Filename security** — Unicode normalization, forbidden character blocking, Windows reserved name detection, path traversal prevention, 255-byte limit
+- **Skill approval workflow** — imported skills land in `pending/` and require explicit human promotion before execution
+- **Browser agent hardening** — downloads disabled, security constraints enabled, prompt injection defense in system prompt, web content treated as untrusted
+- **Port binding** — container port bound to `127.0.0.1` only, not exposed on network interfaces
+- **nginx hardening** — `server_tokens off` (version hidden)
 
 ---
 
