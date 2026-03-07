@@ -1,7 +1,7 @@
 services:
   agent-zero:
     container_name: agent-zero
-    image: agent-zero-hardened:latest
+    image: ${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}
     volumes:
       # Mount /a0/usr to persist user data (memories, skills, settings) across restarts.
       # Remove this if you want a fully ephemeral container.
