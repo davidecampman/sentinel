@@ -18,6 +18,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 export AGENT_ZERO_IMAGE
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agent-zero}"
 
 cd docker/run
 docker compose \
