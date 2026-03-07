@@ -22,7 +22,7 @@ fi
 if [ "${1:-}" = "--stop" ]; then
   echo "==> Stopping test instance ..."
   cd docker/run
-  CONTAINER_NAME="$TEST_CONTAINER" PORT="$TEST_PORT" \
+  CONTAINER_NAME="$TEST_CONTAINER" PORT="$TEST_PORT" COMPOSE_PROJECT_NAME="agent-zero-test" \
     docker compose --env-file "../../.env" -f docker-compose.yml -f docker-compose.dev.yml \
     down
   echo "Stopped."
@@ -44,6 +44,7 @@ fi
 export AGENT_ZERO_IMAGE="$IMAGE"
 export CONTAINER_NAME="$TEST_CONTAINER"
 export PORT="$TEST_PORT"
+export COMPOSE_PROJECT_NAME="agent-zero-test"
 
 echo "==> Starting test instance ..."
 echo "  Image : $IMAGE"
