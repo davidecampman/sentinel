@@ -36,6 +36,8 @@ docker build \
 
 echo ""
 echo "Build complete: $LOCAL_IMAGE"
+docker tag "$LOCAL_IMAGE" "agent-zero-hardened:latest"
+echo "Tagged:  agent-zero-hardened:latest -> $LOCAL_IMAGE"
 
 if $PUSH; then
   if [ -z "$DOCKER_USER" ]; then
