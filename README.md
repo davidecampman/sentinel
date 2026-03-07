@@ -13,7 +13,6 @@ A hardened, self-hosted fork of [Agent Zero](https://github.com/frdel/agent-zero
 - **Date-tagged builds** — `./build.sh` tags images as `agent-zero-hardened:YYYYMMDD` instead of overwriting `:latest`
 - **Explicit `:latest` promotion** — use `./build.sh --latest` to update the local `:latest` tag when you're ready
 - **Docker Hub push** — `./build.sh --push <dockerhub-user>` pushes only the date tag, never overwrites `:latest` on the registry
-- **External named volume** — `docker-compose.yml` references existing volume `run_agent-zero-usr` instead of creating a new one
 - **No `.env` required** — credentials optional at startup; configure LLM keys and auth via the UI after first login
 
 ### Scripts

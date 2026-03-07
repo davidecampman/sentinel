@@ -2,14 +2,5 @@ services:
   agent-zero:
     container_name: ${CONTAINER_NAME:-agent-zero}
     image: ${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}
-    volumes:
-      # Mount /a0/usr to persist user data (memories, skills, settings) across restarts.
-      # Volume is namespaced by COMPOSE_PROJECT_NAME (default: agentzero)
-      - agent-zero-usr:/a0/usr
     ports:
       - "127.0.0.1:${PORT:-50080}:80"
-
-volumes:
-  agent-zero-usr:
-    external: true
-    name: run_agent-zero-usr
