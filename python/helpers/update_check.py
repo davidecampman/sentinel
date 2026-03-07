@@ -10,7 +10,7 @@ async def check_version():
     
     url = "https://api.agent-zero.ai/a0-update-check"
     payload = {"current_version": current_version, "anonymized_id": anonymized_id}
-    async with httpx.AsyncClient(, verify=_tls.get_verify()) as client:
+    async with httpx.AsyncClient(verify=_tls.get_verify()) as client:
         response = await client.post(url, json=payload)
         version = response.json()
     return version
