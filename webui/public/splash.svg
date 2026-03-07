@@ -1,0 +1,34 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#0F172A"/>
+
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1E293B" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)" opacity="0.6"/>
+
+  <!-- Teal accent line top -->
+  <rect x="0" y="0" width="400" height="3" fill="#2DD4BF"/>
+
+  <!-- Logo box -->
+  <rect x="160" y="60" width="80" height="80" rx="12" fill="#1E293B"/>
+  <rect x="160" y="60" width="80" height="80" rx="12" fill="none" stroke="#2DD4BF" stroke-width="1.5" opacity="0.4"/>
+  <!-- sn. text in logo -->
+  <text x="200" y="113" font-size="28" font-weight="700" fill="#2DD4BF" text-anchor="middle" letter-spacing="-1">sn.</text>
+
+  <!-- Wordmark -->
+  <text x="200" y="178" font-size="28" font-weight="700" fill="#F1F5F9" text-anchor="middle" letter-spacing="2">SENTINEL</text>
+
+  <!-- Tagline -->
+  <text x="200" y="204" font-size="11" fill="#64748B" text-anchor="middle" letter-spacing="1">Enterprise AI. Hardened by design.</text>
+
+  <!-- Terminal-style decoration -->
+  <text x="20" y="280" font-size="10" fill="#1E293B" opacity="0.8">// secure by default</text>
+  <text x="260" y="280" font-size="10" fill="#1E293B" opacity="0.8">v1.0.0</text>
+
+  <!-- Bottom teal line -->
+  <rect x="0" y="297" width="400" height="3" fill="#2DD4BF" opacity="0.3"/>
+</svg>

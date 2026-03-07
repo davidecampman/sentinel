@@ -1,6 +1,6 @@
-# Agent Zero — Corporate Edition
+# Sentinel — Enterprise AI. Hardened by design.
 
-A hardened, self-hosted fork of [Agent Zero](https://github.com/frdel/agent-zero) built for corporate/on-prem deployment.
+Sentinel is a hardened, self-hosted enterprise AI agent built on [Agent Zero](https://github.com/frdel/agent-zero) for corporate/on-prem deployment.
 
 ---
 
