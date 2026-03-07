@@ -347,6 +347,11 @@ export async function applySnapshot(snapshot, options = {}) {
   // set ui model vars from backend
   inputStore.paused = snapshot.paused;
 
+  // Set running state on active context so interrupt button can show
+  if (chatsStore.selectedContext) {
+    chatsStore.selectedContext.running = Boolean(snapshot.log_progress_active);
+  }
+
   // Optional: treat snapshot application as proof of connectivity (poll path)
   if (touchConnectionStatus) {
     setConnectionStatus(true);
