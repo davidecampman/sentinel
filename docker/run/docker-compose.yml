@@ -7,7 +7,7 @@ services:
       # Remove this if you want a fully ephemeral container.
       - agent-zero-usr:/a0/usr
     ports:
-      - "127.0.0.1:50080:80"
+      - "127.0.0.1:${PORT:-50080}:80"
 
 volumes:
   agent-zero-usr:
