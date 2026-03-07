@@ -10,11 +10,6 @@
       <div class="sidebar-bottom-wrapper">
         <!-- Preferences Panel -->
         <x-component path="sidebar/bottom/preferences/preferences-panel.html"></x-component>
-        
-        <!-- Version Info -->
-        <div class="version-info">
-          <span id="a0version" x-text="$store.sidebarBottom.versionLabel"></span>
-        </div>
       </div>
     </template>
   </div>
@@ -26,22 +21,6 @@
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
-    }
-
-    /* Version label area */
-    .version-info {
-      line-height: 0.8rem;
-      position: relative;
-      margin: 0 var(--spacing-md) 1rem var(--spacing-md);
-      padding-top: 10px;
-      border-top: 1px solid var(--color-border);
-    }
-
-    #a0version {
-      color: var(--color-text);
-      opacity: 0.7;
-      font-size: 0.7rem;
-      user-select: all;
     }
   </style>
 </body>

@@ -156,8 +156,6 @@ class Settings(TypedDict):
     # LiteLLM global kwargs applied to all model calls
     litellm_global_kwargs: dict[str, Any]
 
-    update_check_enabled: bool
-
     # Corporate TLS settings
     tls_verify: bool       # False = skip verification, True = use ca bundle or system certs
     tls_ca_bundle: str     # Absolute path to PEM CA bundle; empty = system/certifi default
@@ -602,7 +600,6 @@ def get_default_settings() -> Settings:
         variables="",
         secrets="",
         litellm_global_kwargs=get_default_value("litellm_global_kwargs", {}),
-        update_check_enabled=get_default_value("update_check_enabled", True),
         tls_verify=get_default_value("tls_verify", True),
         tls_ca_bundle=get_default_value("tls_ca_bundle", ""),
     )
