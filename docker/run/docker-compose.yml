@@ -1,6 +1,6 @@
 services:
-  agent-zero:
-    container_name: ${CONTAINER_NAME:-agent-zero}
+  sentinel:
+    container_name: ${CONTAINER_NAME:-sentinel}
     image: ${AGENT_ZERO_IMAGE:-sentinel:latest}
     ports:
       - "127.0.0.1:${PORT:-50080}:80"

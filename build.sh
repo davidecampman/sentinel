@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build.sh — Build the Agent Zero Corporate Edition image
+# build.sh — Build the Sentinel image
 #
 # Usage:
 #   ./build.sh                          # builds sentinel:YYYYMMDD
