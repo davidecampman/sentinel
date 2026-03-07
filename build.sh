@@ -2,13 +2,18 @@
 # build.sh — Build the Agent Zero Corporate Edition image
 #
 # Usage:
-#   ./build.sh                          # builds agent-zero-hardened:latest
-#   ./build.sh --push dockerhub-user    # builds + tags with date + pushes to Docker Hub
+#   ./build.sh                          # builds agent-zero-hardened:YYYYMMDD
+#   ./build.sh --push dockerhub-user    # builds + pushes date-tagged image to Docker Hub
 #   ./build.sh --no-cache               # forces full rebuild
+#
+# To test the new build without touching prod:
+#   AGENT_ZERO_IMAGE=agent-zero-hardened:YYYYMMDD ./run.sh
+#
+# To promote to prod, update AGENT_ZERO_IMAGE in your .env
 
 set -euo pipefail
 
-LOCAL_IMAGE="agent-zero-hardened:latest"
+LOCAL_IMAGE="agent-zero-hardened:$(date +%Y%m%d)"
 NO_CACHE=""
 PUSH=false
 DOCKER_USER=""
