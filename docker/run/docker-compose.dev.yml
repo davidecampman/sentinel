@@ -1,0 +1,12 @@
+# docker-compose.dev.yml
+# Development overlay — passes .env credentials into the container.
+# Used automatically by run.sh alongside docker-compose.yml.
+services:
+  agent-zero:
+    environment:
+      - AUTH_LOGIN=${AUTH_LOGIN:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - BROWSER_PROXY=${BROWSER_PROXY:-}
