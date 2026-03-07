@@ -1,593 +1,517 @@
 /*
- * Sentinel Glass Theme
- * Frosted glass aesthetic for Sentinel Corporate Edition
- * Dark navy base with teal (#2DD4BF) accent
- * v2 — cleaner settings, no per-field boxing
+ * Sentinel Glass Theme v3
+ * Proper dark/light scoping — no `:root` colour pollution
+ * Teal (#2DD4BF) dark accent | Dark teal (#0f9683) light accent
  */
 
-/* ─── Base: rich dark gradient behind everything ─── */
-body {
+/* ═══════════════════════════════════════════════
+   SHARED — body gradient switches per mode
+   ═══════════════════════════════════════════════ */
+
+body.dark-mode {
   background: linear-gradient(135deg,
-    #050d1a 0%,
-    #0a1628 25%,
-    #0f1f3d 50%,
-    #0a1628 75%,
-    #050d1a 100%) !important;
-  background-attachment: fixed !important;
+    #050d1a 0%, #0a1628 25%, #0f1f3d 50%,
+    #0a1628 75%, #050d1a 100%) fixed !important;
   min-height: 100vh;
 }
 
-/* ─── CSS variable overrides for glass palette ─── */
-:root,
-.dark-mode {
-  --color-background:         rgba(10, 18, 40, 0.55) !important;
-  --color-background-dark:    rgba(10, 18, 40, 0.55);
-  --color-panel:              rgba(15, 25, 55, 0.60) !important;
-  --color-panel-dark:         rgba(15, 25, 55, 0.60);
-  --color-secondary:          rgba(20, 35, 75, 0.50) !important;
-  --color-secondary-dark:     rgba(20, 35, 75, 0.50);
-  --color-chat-background:    rgba(5, 12, 28, 0.40) !important;
-  --color-message-bg:         rgba(20, 35, 70, 0.55) !important;
-  --color-input:              rgba(10, 20, 45, 0.70) !important;
-  --color-border:             rgba(45, 212, 191, 0.15) !important;
-  --color-border-dark:        rgba(45, 212, 191, 0.15);
-  --color-highlight:          #2DD4BF !important;
-  --color-highlight-dark:     #2DD4BF;
-  --color-accent:             #2DD4BF !important;
-  --color-table-row:          rgba(20, 35, 70, 0.45) !important;
+body.light-mode {
+  background: linear-gradient(135deg,
+    #dce8f5 0%, #c8dcee 30%, #b8d0e8 60%,
+    #c8dcee 80%, #dce8f5 100%) fixed !important;
+  min-height: 100vh;
 }
 
-/* ─── Left Sidebar ─── */
-#left-panel {
-  background: rgba(8, 15, 35, 0.80) !important;
+/* ═══════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════ */
+
+/* CSS vars */
+.dark-mode {
+  --color-background:      rgba(10, 18, 40, 0.55);
+  --color-panel:           rgba(15, 25, 55, 0.65);
+  --color-secondary:       rgba(20, 35, 75, 0.50);
+  --color-chat-background: rgba(5, 12, 28, 0.45);
+  --color-message-bg:      rgba(20, 35, 70, 0.55);
+  --color-input:           rgba(10, 20, 45, 0.70);
+  --color-border:          rgba(45, 212, 191, 0.16);
+  --color-highlight:       #2DD4BF;
+  --color-accent:          #2DD4BF;
+  --color-table-row:       rgba(20, 35, 70, 0.45);
+}
+
+/* Sidebar */
+.dark-mode #left-panel {
+  background: rgba(6, 12, 32, 0.82) !important;
   backdrop-filter: blur(20px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
   border-right: 1px solid rgba(45, 212, 191, 0.12) !important;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
 }
 
-/* ─── Right Panel / Main Area ─── */
-#right-panel,
-#chat-history {
-  background: transparent !important;
-}
-
-/* ─── Message Bubbles ─── */
-.message-text {
-  background: rgba(15, 28, 60, 0.60) !important;
+/* Messages */
+.dark-mode .message-text {
+  background: rgba(15, 28, 60, 0.62) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(45, 212, 191, 0.12) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
 }
-
-.message-user .message-text {
-  background: rgba(30, 45, 90, 0.60) !important;
+.dark-mode .message-user .message-text {
+  background: rgba(28, 45, 95, 0.62) !important;
   border-color: rgba(45, 212, 191, 0.20) !important;
 }
 
-/* ─── Input Area ─── */
-#chat-input,
-.chat-input-wrapper,
-#input-area,
-.input-area {
-  background: rgba(8, 15, 38, 0.85) !important;
+/* Input area */
+.dark-mode #chat-input,
+.dark-mode .chat-input-wrapper,
+.dark-mode #input-area,
+.dark-mode .input-area {
+  background: rgba(6, 12, 35, 0.88) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border-top: 1px solid rgba(45, 212, 191, 0.12) !important;
 }
 
-textarea,
-input[type="text"],
-input[type="password"],
-.chat-input {
-  background: rgba(10, 20, 50, 0.70) !important;
+.dark-mode textarea,
+.dark-mode input[type="text"],
+.dark-mode input[type="password"],
+.dark-mode .chat-input {
+  background: rgba(10, 20, 50, 0.72) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
   border-radius: 8px !important;
   color: #e2e8f0 !important;
 }
-
-textarea:focus,
-input[type="text"]:focus,
-input[type="password"]:focus {
+.dark-mode textarea:focus,
+.dark-mode input[type="text"]:focus,
+.dark-mode input[type="password"]:focus {
   border-color: rgba(45, 212, 191, 0.45) !important;
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.08) !important;
   outline: none !important;
-  filter: none !important;
 }
-
-select {
+.dark-mode select {
   background: rgba(10, 20, 50, 0.75) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
   border-radius: 8px !important;
   color: #e2e8f0 !important;
 }
 
-select:focus {
-  border-color: rgba(45, 212, 191, 0.45) !important;
-  outline: none !important;
-}
-
-/* ─── SETTINGS MODAL ─── */
-
-/* Modal overlay backdrop */
-.modal-overlay,
-.modal-backdrop {
-  background: rgba(2, 6, 18, 0.75) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-}
-
-/* Modal outer shell */
-.modal {
-  background: rgba(8, 14, 35, 0.92) !important;
+/* Modal */
+.dark-mode .modal {
+  background: rgba(8, 14, 38, 0.93) !important;
   backdrop-filter: blur(32px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7),
-              inset 0 1px 0 rgba(45, 212, 191, 0.08) !important;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7) !important;
   border-radius: 16px !important;
 }
-
-/* Modal inner wrapper */
-.modal-inner {
+.dark-mode .modal-inner {
   background: transparent !important;
 }
-
-/* Modal header */
-.modal-header {
-  background: rgba(10, 18, 45, 0.60) !important;
+.dark-mode .modal-header,
+.dark-mode .modal-container {
+  background: rgba(10, 18, 46, 0.65) !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.12) !important;
 }
-
-/* Settings content area */
-.settings-content {
-  background: transparent !important;
+.dark-mode .modal-footer {
+  background: rgba(8, 14, 38, 0.82) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.12) !important;
 }
 
-/* ─── Settings Tabs ─── */
-.settings-tabs-container {
-  background: transparent !important;
-}
-
-.settings-tabs {
-  background: rgba(8, 15, 38, 0.60) !important;
+/* Settings tabs */
+.dark-mode .settings-tabs {
+  background: rgba(8, 15, 40, 0.65) !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.15) !important;
-  border-radius: 8px 8px 0 0 !important;
 }
-
-.settings-tab {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 3px solid transparent !important;
+.dark-mode .settings-tab {
   color: rgba(180, 200, 220, 0.65) !important;
-  transition: all 0.2s ease !important;
-  border-radius: 0 !important;
+  border-bottom: 3px solid transparent !important;
+  background: transparent !important;
 }
-
-.settings-tab:hover {
+.dark-mode .settings-tab:hover {
   background: rgba(45, 212, 191, 0.06) !important;
   color: rgba(45, 212, 191, 0.85) !important;
 }
-
-.settings-tab.active {
-  background: transparent !important;
+.dark-mode .settings-tab.active {
   border-bottom: 3px solid #2DD4BF !important;
   color: #2DD4BF !important;
-}
-
-/* ─── Settings Sections container ─── */
-#settings-sections {
   background: transparent !important;
 }
 
-/* ─── Settings Nav Icon Cards ─── */
-nav ul li a {
-  background: rgba(12, 22, 52, 0.65) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.15) !important;
-  border-radius: 10px !important;
-  transition: all 0.25s ease !important;
-}
-
-nav ul li a:hover {
-  background: rgba(20, 38, 85, 0.80) !important;
-  border-color: rgba(45, 212, 191, 0.40) !important;
-  box-shadow: 0 6px 24px rgba(45, 212, 191, 0.12) !important;
-  transform: translateY(-2px) !important;
-}
-
-/* ─── Settings .section blocks ─── */
-.section {
-  background: rgba(10, 20, 48, 0.55) !important;
+/* Settings sections */
+.dark-mode .section {
+  background: rgba(10, 20, 50, 0.58) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
 }
-
-.section-title {
+.dark-mode .section-title {
   color: #e2e8f0 !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.12) !important;
-  padding-bottom: 0.5rem !important;
-  margin-bottom: 1rem !important;
 }
-
-.section-description {
-  color: rgba(180, 200, 220, 0.70) !important;
-}
-
-/* ─── Settings .field rows — NO individual boxing ─── */
-.field {
+.dark-mode .section-description { color: rgba(180, 200, 220, 0.70) !important; }
+.dark-mode .field {
   background: transparent !important;
   border: none !important;
-  border-radius: 0 !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.06) !important;
-  padding: 0.65rem 0 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
+}
+.dark-mode .field:last-child { border-bottom: none !important; }
+.dark-mode .field-title { color: #c8d8e8 !important; }
+.dark-mode .field-description { color: rgba(150, 175, 200, 0.65) !important; }
+
+/* Settings nav cards */
+.dark-mode nav ul li a {
+  background: rgba(12, 22, 54, 0.68) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-radius: 10px !important;
+}
+.dark-mode nav ul li a:hover {
+  background: rgba(20, 38, 88, 0.82) !important;
+  border-color: rgba(45, 212, 191, 0.40) !important;
+  box-shadow: 0 6px 24px rgba(45, 212, 191, 0.12) !important;
+  transform: translateY(-2px);
 }
 
-.field:last-child {
-  border-bottom: none !important;
-}
-
-.field-title {
-  color: #c8d8e8 !important;
-}
-
-.field-description {
-  color: rgba(150, 175, 200, 0.65) !important;
-}
-
-/* ─── Settings Save/Cancel footer ─── */
-.modal > div:last-child,
-.modal-footer,
-[class*="modal"] .btn-row,
-[class*="modal"] > div:last-child {
-  background: rgba(8, 14, 35, 0.80) !important;
-  border-top: 1px solid rgba(45, 212, 191, 0.12) !important;
-}
-
-/* ─── Buttons ─── */
-button.primary,
-.btn.primary,
-.btn-primary {
-  background: rgba(45, 212, 191, 0.85) !important;
-  border: 1px solid rgba(45, 212, 191, 0.5) !important;
+/* Buttons */
+.dark-mode .button.confirm,
+.dark-mode .btn.primary,
+.dark-mode .btn.slim.primary,
+.dark-mode button.primary {
+  background: rgba(45, 212, 191, 0.88) !important;
+  border: 1px solid rgba(45, 212, 191, 0.55) !important;
   color: #050d1a !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
 }
-
-button.primary:hover,
-.btn.primary:hover,
-.btn-primary:hover {
+.dark-mode .button.confirm:hover,
+.dark-mode .btn.primary:hover,
+.dark-mode .btn.slim.primary:hover {
   background: #2DD4BF !important;
   box-shadow: 0 4px 20px rgba(45, 212, 191, 0.35) !important;
 }
 
-button.cancel,
-.btn.cancel,
-.btn-cancel {
-  background: rgba(30, 45, 85, 0.70) !important;
+.dark-mode .button.cancel,
+.dark-mode .btn.cancel,
+.dark-mode button.cancel {
+  background: rgba(28, 45, 90, 0.72) !important;
   border: 1px solid rgba(45, 212, 191, 0.20) !important;
   color: #c8d8e8 !important;
   border-radius: 8px !important;
 }
 
-button.cancel:hover,
-.btn.cancel:hover {
-  background: rgba(40, 60, 110, 0.80) !important;
+.dark-mode .btn {
+  background: rgba(18, 32, 72, 0.75) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  color: #c8d8e8 !important;
+  border-radius: 8px !important;
+}
+.dark-mode .btn:hover {
+  background: rgba(28, 46, 100, 0.85) !important;
   border-color: rgba(45, 212, 191, 0.35) !important;
 }
 
-/* Send button */
-[class*="send"],
-[class*="submit"] {
-  background: rgba(45, 212, 191, 0.85) !important;
+/* Send/submit */
+.dark-mode [class*="send"],
+.dark-mode [class*="submit"] {
+  background: rgba(45, 212, 191, 0.88) !important;
   border: 1px solid rgba(45, 212, 191, 0.5) !important;
   color: #050d1a !important;
 }
 
-/* ─── Welcome Screen ─── */
-.welcome-container {
-  background: transparent !important;
-}
-
-.welcome-action-card {
-  background: rgba(12, 22, 52, 0.60) !important;
+/* Welcome cards */
+.dark-mode .welcome-action-card {
+  background: rgba(12, 22, 54, 0.62) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(45, 212, 191, 0.15) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
-  transition: all 0.25s ease !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important;
 }
-
-.welcome-action-card:hover {
-  background: rgba(18, 34, 78, 0.75) !important;
+.dark-mode .welcome-action-card:hover {
+  background: rgba(18, 36, 82, 0.78) !important;
   border-color: rgba(45, 212, 191, 0.38) !important;
-  box-shadow: 0 12px 40px rgba(45, 212, 191, 0.10),
-              0 4px 16px rgba(0, 0, 0, 0.4) !important;
-  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 40px rgba(45,212,191,0.10) !important;
+  transform: translateY(-2px);
 }
 
-/* ─── Toggle button (sidebar) ─── */
-.toggle-sidebar-button {
-  background: rgba(15, 25, 55, 0.70) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.15) !important;
-}
-
-.toggle-sidebar-button:hover {
-  background: rgba(25, 40, 80, 0.80) !important;
-  border-color: rgba(45, 212, 191, 0.30) !important;
-}
-
-/* ─── Dropdowns ─── */
-.dropdown {
-  background: rgba(8, 16, 42, 0.95) !important;
+/* Misc */
+.dark-mode .dropdown {
+  background: rgba(8, 16, 44, 0.96) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(45, 212, 191, 0.18) !important;
   border-radius: 10px !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
 }
-
-/* ─── Notifications / Toasts ─── */
-.toast,
-.notification {
-  background: rgba(8, 15, 40, 0.94) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.20) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* ─── Code blocks ─── */
-pre, code {
-  background: rgba(4, 10, 28, 0.80) !important;
+.dark-mode pre, .dark-mode code {
+  background: rgba(4, 10, 28, 0.82) !important;
   border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 8px !important;
 }
-
-/* ─── Tables ─── */
-tr:nth-child(even) {
-  background: rgba(20, 35, 75, 0.35) !important;
-}
-tr:hover {
-  background: rgba(30, 50, 100, 0.40) !important;
-}
-
-/* ─── Scrollbars ─── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: rgba(10, 18, 40, 0.3); }
-::-webkit-scrollbar-thumb {
-  background: rgba(45, 212, 191, 0.22);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(45, 212, 191, 0.42); }
-
-/* ─── Icons teal tint ─── */
-.material-symbols-outlined {
-  transition: color 0.2s ease;
-}
-
-.welcome-action-card:hover .material-symbols-outlined {
-  color: #2DD4BF;
-}
-
-/* ─── Misc top bar ─── */
-#hide-button,
-.icons-section {
-  background: transparent !important;
-}
+.dark-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
+.dark-mode ::-webkit-scrollbar-track { background: rgba(10,18,40,0.3); }
+.dark-mode ::-webkit-scrollbar-thumb { background: rgba(45,212,191,0.22); border-radius: 10px; }
+.dark-mode ::-webkit-scrollbar-thumb:hover { background: rgba(45,212,191,0.42); }
 
 /* ═══════════════════════════════════════════════
-   LIGHT MODE GLASS THEME
-   Frosted white glass on soft blue-gray gradient
+   LIGHT MODE
    ═══════════════════════════════════════════════ */
 
-.light-mode body,
-body.light-mode {
-  background: linear-gradient(135deg,
-    #e8f0f7 0%, #ddeaf5 25%, #cfdff0 50%,
-    #ddeaf5 75%, #e8f0f7 100%) !important;
-  background-attachment: fixed !important;
-}
-
+/* CSS vars */
 .light-mode {
-  --color-background:   rgba(255, 255, 255, 0.50) !important;
-  --color-panel:        rgba(255, 255, 255, 0.60) !important;
-  --color-secondary:    rgba(240, 246, 252, 0.65) !important;
-  --color-border:       rgba(45, 212, 191, 0.22) !important;
-  --color-highlight:    #0f9683 !important;
-  --color-input:        rgba(255, 255, 255, 0.70) !important;
-  --color-text:         #1e293b !important;
-  --color-text-muted:   #4a5568 !important;
-  --color-primary:      #334155 !important;
+  --color-background:      rgba(255, 255, 255, 0.55);
+  --color-panel:           rgba(240, 248, 255, 0.68);
+  --color-secondary:       rgba(220, 238, 255, 0.65);
+  --color-chat-background: rgba(230, 242, 255, 0.50);
+  --color-message-bg:      rgba(255, 255, 255, 0.70);
+  --color-input:           rgba(255, 255, 255, 0.80);
+  --color-border:          rgba(45, 212, 191, 0.25);
+  --color-highlight:       #0f9683;
+  --color-accent:          #0f9683;
+  --color-table-row:       rgba(220, 240, 255, 0.55);
+  --color-text:            #1e293b;
+  --color-text-muted:      #4a5568;
+  --color-primary:         #334155;
 }
 
+/* Sidebar */
 .light-mode #left-panel {
-  background: rgba(240, 248, 255, 0.82) !important;
+  background: rgba(230, 244, 255, 0.85) !important;
   backdrop-filter: blur(20px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  border-right: 1px solid rgba(45, 212, 191, 0.20) !important;
-  box-shadow: 4px 0 24px rgba(100, 150, 200, 0.15);
+  border-right: 1px solid rgba(45, 212, 191, 0.22) !important;
 }
 
+/* Messages */
 .light-mode .message-text {
-  background: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.18) !important;
-  box-shadow: 0 4px 16px rgba(100, 150, 200, 0.15);
+  border: 1px solid rgba(45, 212, 191, 0.20) !important;
+  border-radius: 12px !important;
   color: #1e293b !important;
 }
-
 .light-mode .message-user .message-text {
-  background: rgba(220, 242, 255, 0.70) !important;
-  border-color: rgba(45, 212, 191, 0.28) !important;
+  background: rgba(210, 240, 255, 0.75) !important;
+  border-color: rgba(45, 212, 191, 0.30) !important;
 }
 
+/* Input area */
 .light-mode #chat-input,
 .light-mode .chat-input-wrapper,
 .light-mode #input-area,
 .light-mode .input-area {
-  background: rgba(240, 248, 255, 0.88) !important;
+  background: rgba(230, 244, 255, 0.90) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(45, 212, 191, 0.18) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.20) !important;
 }
-
 .light-mode textarea,
 .light-mode input[type="text"],
 .light-mode input[type="password"],
 .light-mode .chat-input {
-  background: rgba(255, 255, 255, 0.80) !important;
-  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(45, 212, 191, 0.28) !important;
   border-radius: 8px !important;
   color: #1e293b !important;
 }
-
 .light-mode textarea:focus,
 .light-mode input[type="text"]:focus,
 .light-mode input[type="password"]:focus {
   border-color: rgba(15, 150, 131, 0.55) !important;
   box-shadow: 0 0 0 3px rgba(15, 150, 131, 0.10) !important;
-  filter: none !important;
+  outline: none !important;
 }
-
 .light-mode select {
-  background: rgba(255, 255, 255, 0.80) !important;
-  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(45, 212, 191, 0.28) !important;
   border-radius: 8px !important;
   color: #1e293b !important;
 }
 
+/* Modal */
 .light-mode .modal {
-  background: rgba(240, 248, 255, 0.94) !important;
+  background: rgba(235, 248, 255, 0.96) !important;
   backdrop-filter: blur(32px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(32px) saturate(160%) !important;
-  border: 1px solid rgba(45, 212, 191, 0.22) !important;
-  box-shadow: 0 32px 80px rgba(100, 150, 200, 0.30),
-              inset 0 1px 0 rgba(255, 255, 255, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  box-shadow: 0 32px 80px rgba(80, 130, 180, 0.25) !important;
+  border-radius: 16px !important;
 }
-
-.light-mode .modal-header {
-  background: rgba(220, 238, 252, 0.70) !important;
-  border-bottom: 1px solid rgba(45, 212, 191, 0.18) !important;
+.light-mode .modal-inner {
+  background: transparent !important;
 }
-
-.light-mode .settings-tabs {
-  background: rgba(220, 238, 252, 0.60) !important;
+.light-mode .modal-header,
+.light-mode .modal-container {
+  background: rgba(210, 235, 255, 0.75) !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.20) !important;
+  color: #1e293b !important;
+}
+.light-mode .modal-footer {
+  background: rgba(220, 240, 255, 0.85) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.20) !important;
+}
+.light-mode .modal-header h2,
+.light-mode .modal-header h3,
+.light-mode .modal-close,
+.light-mode .modal-x {
+  color: #1e293b !important;
 }
 
+/* Settings tabs */
+.light-mode .settings-tabs {
+  background: rgba(210, 235, 255, 0.65) !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.22) !important;
+}
 .light-mode .settings-tab {
-  color: rgba(50, 70, 100, 0.70) !important;
+  color: rgba(45, 65, 100, 0.72) !important;
+  border-bottom: 3px solid transparent !important;
+  background: transparent !important;
 }
-
 .light-mode .settings-tab:hover {
   background: rgba(45, 212, 191, 0.08) !important;
   color: #0f9683 !important;
 }
-
 .light-mode .settings-tab.active {
   border-bottom: 3px solid #0f9683 !important;
   color: #0f9683 !important;
   background: transparent !important;
 }
 
-.light-mode nav ul li a {
-  background: rgba(255, 255, 255, 0.68) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.20) !important;
-  border-radius: 10px !important;
-  color: #1e293b !important;
-  box-shadow: 0 2px 8px rgba(100, 150, 200, 0.10) !important;
-}
-
-.light-mode nav ul li a:hover {
-  background: rgba(220, 245, 242, 0.88) !important;
-  border-color: rgba(15, 150, 131, 0.40) !important;
-  box-shadow: 0 6px 24px rgba(15, 150, 131, 0.12) !important;
-}
-
+/* Settings sections */
 .light-mode .section {
-  background: rgba(255, 255, 255, 0.58) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.15) !important;
-  box-shadow: 0 4px 20px rgba(100, 150, 200, 0.10) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(80,130,180,0.08) !important;
 }
-
 .light-mode .section-title {
   color: #1e293b !important;
   border-bottom: 1px solid rgba(45, 212, 191, 0.15) !important;
 }
-
-.light-mode .section-description,
-.light-mode .field-description {
-  color: rgba(60, 80, 110, 0.75) !important;
-}
-
+.light-mode .section-description { color: rgba(50, 75, 110, 0.78) !important; }
 .light-mode .field {
-  border-bottom: 1px solid rgba(45, 212, 191, 0.10) !important;
   background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.10) !important;
 }
+.light-mode .field:last-child { border-bottom: none !important; }
+.light-mode .field-title { color: #1e293b !important; }
+.light-mode .field-description { color: rgba(55, 78, 115, 0.75) !important; }
 
-.light-mode .field-title {
+/* Settings nav cards */
+.light-mode nav ul li a {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+  border-radius: 10px !important;
   color: #1e293b !important;
 }
+.light-mode nav ul li a:hover {
+  background: rgba(210, 245, 240, 0.90) !important;
+  border-color: rgba(15, 150, 131, 0.42) !important;
+  box-shadow: 0 6px 24px rgba(15,150,131,0.12) !important;
+  transform: translateY(-2px);
+}
 
-.light-mode button.primary,
+/* Buttons */
+.light-mode .button.confirm,
 .light-mode .btn.primary,
-.light-mode .btn-primary {
+.light-mode .btn.slim.primary,
+.light-mode button.primary {
   background: #0f9683 !important;
-  border-color: #0b7a6a !important;
+  border: 1px solid #0b7a6a !important;
   color: #ffffff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
 }
-
-.light-mode button.primary:hover,
-.light-mode .btn.primary:hover {
+.light-mode .button.confirm:hover,
+.light-mode .btn.primary:hover,
+.light-mode .btn.slim.primary:hover {
   background: #0b7a6a !important;
-  box-shadow: 0 4px 20px rgba(15, 150, 131, 0.35) !important;
+  box-shadow: 0 4px 20px rgba(15,150,131,0.35) !important;
 }
 
-.light-mode button.cancel,
-.light-mode .btn.cancel {
-  background: rgba(220, 235, 248, 0.80) !important;
-  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+.light-mode .button.cancel,
+.light-mode .btn.cancel,
+.light-mode button.cancel {
+  background: rgba(215, 232, 248, 0.85) !important;
+  border: 1px solid rgba(45, 212, 191, 0.28) !important;
   color: #334155 !important;
+  border-radius: 8px !important;
 }
 
+.light-mode .btn {
+  background: rgba(220, 236, 252, 0.80) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+  color: #334155 !important;
+  border-radius: 8px !important;
+}
+.light-mode .btn:hover {
+  background: rgba(200, 230, 248, 0.90) !important;
+  border-color: rgba(15, 150, 131, 0.38) !important;
+}
+
+/* Welcome cards */
 .light-mode .welcome-action-card {
-  background: rgba(255, 255, 255, 0.65) !important;
-  border: 1px solid rgba(45, 212, 191, 0.18) !important;
-  box-shadow: 0 8px 32px rgba(100, 150, 200, 0.12) !important;
+  background: rgba(255, 255, 255, 0.68) !important;
+  border: 1px solid rgba(45, 212, 191, 0.20) !important;
+  box-shadow: 0 8px 32px rgba(80,130,180,0.10) !important;
+  border-radius: 16px !important;
 }
-
 .light-mode .welcome-action-card:hover {
-  background: rgba(220, 245, 242, 0.82) !important;
-  border-color: rgba(15, 150, 131, 0.35) !important;
-  box-shadow: 0 12px 40px rgba(15, 150, 131, 0.12) !important;
+  background: rgba(210, 245, 240, 0.85) !important;
+  border-color: rgba(15, 150, 131, 0.38) !important;
+  box-shadow: 0 12px 40px rgba(15,150,131,0.12) !important;
+  transform: translateY(-2px);
 }
 
-.light-mode pre,
-.light-mode code {
-  background: rgba(220, 238, 255, 0.80) !important;
+/* Misc */
+.light-mode .dropdown {
+  background: rgba(240, 250, 255, 0.97) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(80,130,180,0.20) !important;
+}
+.light-mode pre, .light-mode code {
+  background: rgba(215, 235, 255, 0.82) !important;
   border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  border-radius: 8px !important;
   color: #1e293b !important;
 }
+.light-mode tr:nth-child(even) { background: rgba(210, 235, 255, 0.40) !important; }
+.light-mode tr:hover { background: rgba(195, 228, 248, 0.50) !important; }
+.light-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
+.light-mode ::-webkit-scrollbar-track { background: rgba(180,210,240,0.3); }
+.light-mode ::-webkit-scrollbar-thumb { background: rgba(15,150,131,0.30); border-radius: 10px; }
+.light-mode ::-webkit-scrollbar-thumb:hover { background: rgba(15,150,131,0.50); }
 
-.light-mode ::-webkit-scrollbar-track { background: rgba(200, 220, 240, 0.3); }
-.light-mode ::-webkit-scrollbar-thumb { background: rgba(15, 150, 131, 0.30); }
-.light-mode ::-webkit-scrollbar-thumb:hover { background: rgba(15, 150, 131, 0.50); }
+/* Toggle + misc shared */
+#hide-button, .icons-section { background: transparent !important; }
+.dark-mode .toggle-sidebar-button {
+  background: rgba(15, 25, 58, 0.72) !important;
+  border: 1px solid rgba(45, 212, 191, 0.15) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+.light-mode .toggle-sidebar-button {
+  background: rgba(220, 240, 255, 0.82) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+}
+.dark-mode .toast, .dark-mode .notification {
+  background: rgba(8,15,42,0.95) !important;
+  border: 1px solid rgba(45,212,191,0.22) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+.light-mode .toast, .light-mode .notification {
+  background: rgba(240,250,255,0.97) !important;
+  border: 1px solid rgba(45,212,191,0.25) !important;
+}
