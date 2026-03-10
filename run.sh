@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# run.sh - Start Sentinel
+# run.sh — Start Agent Zero Corporate Edition
 #
 # Usage:
 #   ./run.sh              # start production instance  (port 50080)
 #   ./run.sh --test       # start test instance        (port 50081, isolated volume)
-#   AGENT_ZERO_IMAGE=myuser/sentinel ./run.sh
+#   AGENT_ZERO_IMAGE=myuser/agent-zero-hardened ./run.sh
 
 set -euo pipefail
 
@@ -16,14 +16,14 @@ for arg in "$@"; do
 done
 
 if [ "$MODE" = "test" ]; then
-  AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-sentinel:latest}"
-  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-sentinel-test}"
-  CONTAINER_NAME="${CONTAINER_NAME:-sentinel-test}"
+  AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}"
+  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agentzero-test}"
+  CONTAINER_NAME="${CONTAINER_NAME:-agent-zero-test}"
   PORT="${PORT:-50081}"
 else
-  AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-sentinel:latest}"
-  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-sentinel}"
-  CONTAINER_NAME="${CONTAINER_NAME:-sentinel}"
+  AGENT_ZERO_IMAGE="${AGENT_ZERO_IMAGE:-agent-zero-hardened:latest}"
+  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agentzero}"
+  CONTAINER_NAME="${CONTAINER_NAME:-agent-zero}"
   PORT="${PORT:-50080}"
 fi
 
@@ -39,7 +39,7 @@ docker compose \
   up -d
 
 echo ""
-echo "Sentinel [$MODE] running at http://127.0.0.1:$PORT"
+echo "Agent Zero [$MODE] running at http://127.0.0.1:$PORT"
 echo "  Image     : $AGENT_ZERO_IMAGE"
 echo "  Container : $CONTAINER_NAME"
 echo "  Logs      : docker logs -f $CONTAINER_NAME"

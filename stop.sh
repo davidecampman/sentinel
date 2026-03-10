@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# stop.sh - Stop Sentinel
+# stop.sh — Stop Agent Zero Corporate Edition
 #
 # Usage:
 #   ./stop.sh           # stop production instance
@@ -15,11 +15,11 @@ for arg in "$@"; do
 done
 
 if [ "$MODE" = "test" ]; then
-  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-sentinel-test}"
+  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agentzero-test}"
 else
-  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-sentinel}"
+  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-agentzero}"
 fi
 
 cd docker/run
 docker compose -f docker-compose.yml -f docker-compose.dev.yml down
-echo "Sentinel [$MODE] stopped."
+echo "Agent Zero [$MODE] stopped."
