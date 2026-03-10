@@ -519,7 +519,7 @@ def get_default_settings() -> Settings:
         chat_model_name=get_default_value("chat_model_name", "anthropic/claude-sonnet-4.6"),
         chat_model_api_base=get_default_value("chat_model_api_base", ""),
         chat_model_kwargs=get_default_value("chat_model_kwargs", {}),
-        chat_model_ctx_length=get_default_value("chat_model_ctx_length", 100000),
+        chat_model_ctx_length=get_default_value("chat_model_ctx_length", 60000),
         chat_model_ctx_history=get_default_value("chat_model_ctx_history", 0.4),
         chat_model_vision=get_default_value("chat_model_vision", True),
         chat_model_rl_requests=get_default_value("chat_model_rl_requests", 0),
