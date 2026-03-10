@@ -2,7 +2,7 @@
 # Development overlay — passes .env credentials into the container.
 # Used automatically by run.sh alongside docker-compose.yml.
 services:
-  sentinel:
+  agent-zero:
     environment:
       - AUTH_LOGIN=${AUTH_LOGIN:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}

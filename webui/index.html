@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Sentinel</title>
+    <title>Agent Zero</title>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="css/messages.css">
@@ -55,13 +55,13 @@
 
     <!-- Google Icons -->
     <link rel="stylesheet" href="vendor/google/google-icons.css" />
-    <link rel="stylesheet" href="css/glass-theme.css">
 
     <!-- Link the PWA manifest file -->
     <link rel="manifest" href="js/manifest.json">
 
     <script>
         // Expose git info for sidebar component
+        globalThis.gitinfo = { version: "{{version_no}}", commit_time: "{{version_time}}" };
 
         // Expose runtime info for frontend components (development gating, runtime-scoped cookies).
         globalThis.runtimeInfo = {

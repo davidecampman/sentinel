@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# build.sh — Build the Sentinel image
+# build.sh — Build the Agent Zero Corporate Edition image
 #
 # Usage:
-#   ./build.sh                          # builds sentinel:YYYYMMDD
-#   ./build.sh --latest                 # also updates sentinel:latest
+#   ./build.sh                          # builds agent-zero-hardened:YYYYMMDD
+#   ./build.sh --latest                 # also updates agent-zero-hardened:latest
 #   ./build.sh --push dockerhub-user    # builds + pushes date-tagged image to Docker Hub
 #   ./build.sh --no-cache               # forces full rebuild
 #
 # To test the new build without touching prod:
-#   AGENT_ZERO_IMAGE=sentinel:YYYYMMDD ./run.sh
+#   AGENT_ZERO_IMAGE=agent-zero-hardened:YYYYMMDD ./run.sh
 #
 # To promote to prod, update AGENT_ZERO_IMAGE in your .env
 
 set -euo pipefail
 
-LOCAL_IMAGE="sentinel:$(date +%Y%m%d)"
+LOCAL_IMAGE="agent-zero-hardened:$(date +%Y%m%d)"
 NO_CACHE=""
 PUSH=false
 TAG_LATEST=false
@@ -41,8 +41,8 @@ echo ""
 echo "Build complete: $LOCAL_IMAGE"
 
 if $TAG_LATEST; then
-  docker tag "$LOCAL_IMAGE" "sentinel:latest"
-  echo "Tagged:  sentinel:latest -> $LOCAL_IMAGE"
+  docker tag "$LOCAL_IMAGE" "agent-zero-hardened:latest"
+  echo "Tagged:  agent-zero-hardened:latest -> $LOCAL_IMAGE"
 fi
 
 if $PUSH; then
@@ -52,7 +52,7 @@ if $PUSH; then
     exit 1
   fi
 
-  DATE_TAG="$DOCKER_USER/sentinel:$(date +%Y%m%d)"
+  DATE_TAG="$DOCKER_USER/agent-zero-hardened:$(date +%Y%m%d)"
 
   echo "==> Tagging as $DATE_TAG"
   docker tag "$LOCAL_IMAGE" "$DATE_TAG"
