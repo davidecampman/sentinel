@@ -1,5 +1,5 @@
 /*
- * Agent Zero Glass Theme v3
+ * Sentinel Glass Theme v3
  * Proper dark/light scoping — no `:root` colour pollution
  * Teal (#2DD4BF) dark accent | Dark teal (#0f9683) light accent
  */
@@ -516,7 +516,7 @@ body.light-mode {
   border: 1px solid rgba(45,212,191,0.25) !important;
 }
 
-/* ── Send button — teal accent ── */
+/* ── Send button — teal to match Sentinel brand ── */
 .dark-mode #send-button {
     background-color: #2DD4BF !important;
     color: #050d1a !important;
