@@ -129,7 +129,7 @@ Security-focused test suite with pytest:
 
 ```bash
 # Clone
-git clone https://github.com/davidecampman/agentzero.git sentinel
+git clone https://github.com/davidecampman/sentinel.git
 cd sentinel
 
 # Configure
