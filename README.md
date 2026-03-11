@@ -14,7 +14,7 @@ Agent Zero is a powerful tool, but its defaults are oriented toward individual d
 
 - Security controls appropriate for self-hosted, internal deployment
 - Hardened Docker configuration for production use
-- AWS Bedrock as the primary LLM backend (on-prem/approved cloud)
+- Supports all major LLM providers via LiteLLM (OpenAI, Anthropic, AWS Bedrock, Azure, Ollama, and more)
 - Cost-optimized model defaults for daily engineering work
 - Refined agent profiles tuned for software development workflows
 - Cleaner UI with corporate-friendly branding
@@ -69,18 +69,25 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 
 ---
 
-### ☁️ AWS Bedrock as Primary LLM Backend
-Configured for AWS Bedrock — keeps all LLM traffic within approved cloud infrastructure:
-- Default chat model: `us.anthropic.claude-sonnet-4-6`
-- Default utility model: `us.amazon.nova-micro-v1:0`
-- Default browser model: `us.anthropic.claude-haiku-3-5` (cost-optimized)
-- Default embedding model: `amazon.titan-embed-text-v2:0`
-- No external API calls required beyond AWS
+### 🔌 LLM Provider Flexibility
+Sentinel inherits full LiteLLM support from Agent Zero — connect to any major LLM provider:
+
+| Provider | Example Models |
+|----------|---------------|
+| AWS Bedrock | Claude Sonnet, Amazon Nova, Titan Embed |
+| Anthropic (direct) | claude-opus-4, claude-sonnet-4 |
+| OpenAI | gpt-4o, o3, text-embedding-3-large |
+| Azure OpenAI | Any Azure-deployed model |
+| Google | gemini-2.5-pro, gemini-flash |
+| Ollama | llama3, mistral, codellama (local) |
+| OpenRouter | 100+ models via single API |
+
+Configure your preferred provider via Settings → Models after first login. No provider is required at build time.
 
 ---
 
 ### 💰 Cost Optimization
-Defaults tuned to reduce Bedrock spend without sacrificing quality:
+Defaults tuned to reduce LLM token costs without sacrificing quality:
 - `ctx_history` reduced to `0.40` (sends 40% of history per turn vs 70% default)
 - `ctx_length` reduced to `60,000` tokens (vs 100,000 default)
 - Browser model set to Claude Haiku (4x cheaper than Sonnet for browsing tasks)
@@ -132,7 +139,7 @@ Security-focused test suite with pytest:
 
 ### Prerequisites
 - Docker & Docker Compose
-- AWS credentials with Bedrock access
+- API credentials for your chosen LLM provider
 
 ### Setup
 
@@ -143,7 +150,7 @@ cd sentinel
 
 # Configure
 cp .env.example .env
-# Edit .env — add AWS credentials at minimum
+# Edit .env — add LLM provider credentials
 
 # Build & run
 ./build.sh
@@ -156,9 +163,10 @@ Open `http://localhost` and configure LLM settings via the UI.
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
-| `AWS_ACCESS_KEY_ID` | Bedrock authentication | Yes |
-| `AWS_SECRET_ACCESS_KEY` | Bedrock authentication | Yes |
-| `AWS_DEFAULT_REGION` | Bedrock region | Yes |
+| `LLM_API_KEY` | API key for your LLM provider | Yes |
+| `AWS_ACCESS_KEY_ID` | AWS Bedrock authentication (if using Bedrock) | Bedrock only |
+| `AWS_SECRET_ACCESS_KEY` | AWS Bedrock authentication (if using Bedrock) | Bedrock only |
+| `AWS_DEFAULT_REGION` | AWS region (if using Bedrock) | Bedrock only |
 | `A0_AUTH_LOGIN` | UI login username | Recommended |
 | `A0_AUTH_PASSWORD` | UI login password | Recommended |
 | `PORT` | Host port mapping | Optional (default `80`) |
