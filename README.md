@@ -203,3 +203,29 @@ git log upstream/main --oneline -10
 - Approval workflows for sensitive actions
 - Policy enforcement on tool usage
 - Compliance-friendly audit trails
+
+---
+
+## License & Attribution
+
+Sentinel is a fork of [Agent Zero](https://github.com/agent0ai/agent-zero), which is released under the **MIT License**.
+
+The MIT License is one of the most permissive open-source licenses. It explicitly permits:
+
+| Action | Permitted |
+|--------|----------|
+| Forking and modifying the codebase | ✅ Yes |
+| Rebranding (Agent Zero → Sentinel) | ✅ Yes |
+| Removing the original name from the UI | ✅ Yes |
+| Commercial use and internal deployment | ✅ Yes |
+| Redistribution (e.g. Docker Hub) | ✅ Yes |
+
+The **only requirement** of the MIT License is that the original copyright notice and license text be preserved somewhere in the project. Our [`LICENSE`](LICENSE) file fulfills this requirement — it retains the original:
+
+```
+MIT License
+Copyright (c) 2025 Agent Zero, s.r.o
+Contact: pr@agent-zero.ai
+```
+
+We believe this fork is fully compliant with the upstream license. We also give credit to the Agent Zero team for building the excellent foundation that Sentinel is built upon.
