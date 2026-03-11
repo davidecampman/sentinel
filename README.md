@@ -147,10 +147,7 @@ Open `http://localhost` and configure LLM settings via the UI.
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
-| `LLM_API_KEY` | API key for your LLM provider | Yes |
-| `AWS_ACCESS_KEY_ID` | AWS Bedrock authentication (if using Bedrock) | Bedrock only |
-| `AWS_SECRET_ACCESS_KEY` | AWS Bedrock authentication (if using Bedrock) | Bedrock only |
-| `AWS_DEFAULT_REGION` | AWS region (if using Bedrock) | Bedrock only |
+| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
 | `A0_AUTH_LOGIN` | UI login username | Recommended |
 | `A0_AUTH_PASSWORD` | UI login password | Recommended |
 | `PORT` | Host port mapping | Optional (default `80`) |
