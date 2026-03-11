@@ -14,7 +14,6 @@ Agent Zero is a powerful tool, but its defaults are oriented toward individual d
 
 - Security controls appropriate for self-hosted, internal deployment
 - Hardened Docker configuration for production use
-- Supports all major LLM providers via LiteLLM (OpenAI, Anthropic, AWS Bedrock, Azure, Ollama, and more)
 - Cost-optimized model defaults for daily engineering work
 - Refined agent profiles tuned for software development workflows
 - Cleaner UI with corporate-friendly branding
@@ -68,21 +67,6 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 - TLS settings propagated to **all** HTTP clients: `aiohttp`, `httpx`, `requests`, Playwright, IMAPClient
 
 ---
-
-### 🔌 LLM Provider Flexibility
-Sentinel inherits full LiteLLM support from Agent Zero — connect to any major LLM provider:
-
-| Provider | Example Models |
-|----------|---------------|
-| AWS Bedrock | Claude Sonnet, Amazon Nova, Titan Embed |
-| Anthropic (direct) | claude-opus-4, claude-sonnet-4 |
-| OpenAI | gpt-4o, o3, text-embedding-3-large |
-| Azure OpenAI | Any Azure-deployed model |
-| Google | gemini-2.5-pro, gemini-flash |
-| Ollama | llama3, mistral, codellama (local) |
-| OpenRouter | 100+ models via single API |
-
-Configure your preferred provider via Settings → Models after first login. No provider is required at build time.
 
 ---
 
