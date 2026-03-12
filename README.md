@@ -3,7 +3,7 @@
 
 Sentinel is a hardened, corporate-ready fork of [Agent Zero](https://github.com/agent0ai/agent-zero) — an open-source autonomous AI agent framework. This project extends the upstream codebase with a focus on making it suitable for self-hosted deployment in enterprise engineering environments.
 
-> **Base project:** [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero) (MIT License)  
+> **Base project:** [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero) (MIT License)
 > **License:** MIT — see [LICENSE](LICENSE)
 
 ---
@@ -19,6 +19,48 @@ Agent Zero is a powerful tool, but its defaults are oriented toward individual d
 - Cleaner UI with corporate-friendly branding
 
 The goal is not to diverge from upstream — it's to layer production-readiness on top of it, while staying mergeable with upstream improvements.
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Docker & Docker Compose
+- API credentials for your chosen LLM provider
+
+### Setup
+
+```bash
+# Clone
+git clone https://github.com/davidecampman/sentinel.git
+cd sentinel
+
+# Configure
+cp .env.example .env
+
+# Build & run
+./build.sh
+./run.sh
+```
+
+Open `http://localhost` and enter your LLM API key via **Settings → Model**.
+
+To test a new build alongside a running prod instance:
+
+```bash
+./test.sh          # starts test instance on port 50081
+./test.sh --stop   # tear it down when done
+```
+
+### Environment Variables
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `A0_AUTH_LOGIN` | UI login username | Recommended |
+| `A0_AUTH_PASSWORD` | UI login password | Recommended |
+| `PORT` | Host port mapping | Optional (default `80`) |
+| `TLS_CA_BUNDLE` | Path to corporate CA bundle | If behind TLS proxy |
+| `TLS_VERIFY` | Enable/disable TLS verification | Optional |
 
 ---
 
@@ -68,8 +110,6 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 
 ---
 
----
-
 ### 💰 Cost Optimization
 Defaults tuned to reduce LLM token costs without sacrificing quality:
 - `ctx_history` reduced to `0.40` (sends 40% of history per turn vs 70% default)
@@ -93,66 +133,63 @@ All four agent profiles have detailed, opinionated instructions for corporate en
 ### 🛠️ Deployment Scripts
 Production-ready scripts for building and running the container:
 
+**`build.sh`** — Build the Docker image
 ```bash
-./build.sh                        # build Docker image
-./build.sh --push <dockerhub-user> # build + push to Docker Hub
-./run.sh                          # start production instance
-./stop.sh                         # stop production instance
-./test.sh                         # start test instance on port 50081
-./test.sh --stop                  # stop test instance
-./run_tests.sh                    # run security test suite
-./run_tests.sh -v                 # verbose test output
+./build.sh                          # build sentinel:<YYYYMMDD>
+./build.sh --latest                 # also tag sentinel:latest locally
+./build.sh --no-cache               # force full rebuild (no Docker layer cache)
+./build.sh --push <dockerhub-user>  # build + push date-tagged image to Docker Hub
+```
+
+**`run.sh`** — Start a Sentinel instance
+```bash
+./run.sh                            # start production instance (port 50080)
+./run.sh --test                     # start test instance (port 50081, isolated volume)
+AGENT_ZERO_IMAGE=myuser/sentinel:20250101 ./run.sh  # run a specific image
+```
+
+**`stop.sh`** — Stop a Sentinel instance
+```bash
+./stop.sh                           # stop production instance
+./stop.sh --test                    # stop test instance
+```
+
+**`run_tests.sh`** — Run the security test suite
+```bash
+./run_tests.sh                      # run security tests
+./run_tests.sh -v                   # verbose output
+./run_tests.sh -k <test-name>       # run a specific test (any pytest flag accepted)
 ```
 
 Multi-instance support via environment variables:
-- `PORT` — configure host port mapping (default `80`)
+- `PORT` — override host port mapping
 - `COMPOSE_PROJECT_NAME` — namespace Docker resources for isolated instances
+- `AGENT_ZERO_IMAGE` — specify which image `run.sh` starts (default `sentinel:latest`)
 
 ---
 
-### 🧪 Test Infrastructure
-Security-focused test suite with pytest:
-- `tests/test_tls_helper.py` — 16 tests covering all TLS configuration paths
-- `tests/test_fasta2a_client.py` — A2A connectivity test
-- `pytest.ini` with `asyncio_mode=auto` and security/integration markers
-- `run_tests.sh` — one-command test runner
+### Dependency Security Patches
 
----
+Patched 25 known CVEs via version bumps (2 remain unfixable pending upstream releases):
 
-## Quick Start
+| Package | Version | CVEs fixed |
+|---|---|---|
+| `pypdf` | 6.0.0 → 6.7.5 | 13 CVEs — DoS via malformed PDFs (infinite loop, RAM exhaustion) |
+| `langchain-core` | 0.3.49 → 0.3.81 | CVE-2025-65106 (template injection), CVE-2025-68664 (serialization injection / secret extraction) |
+| `mcp` | 1.22.0 → 1.26.0 | CVE-2025-66416 — DNS rebinding protection disabled by default on localhost MCP servers |
+| `fastmcp` | 2.13.1 → 2.14.0 | GHSA-rcfx-77hg-w2wv — inherits mcp CVE-2025-66416 fix |
+| `unstructured` | 0.16.23 → 0.18.18 | CVE-2025-64712 — path traversal in `partition_msg()` → arbitrary file write |
+| `langchain-community` | 0.3.19 → 0.3.27 | CVE-2025-6984 |
+| `lxml_html_clean` | 0.3.1 → 0.4.4 | PYSEC-2024-160, CVE-2026-28348/28350 — XSS via HTML cleaning bypass |
+| `flask` | 3.0.3 → 3.1.3 | CVE-2026-27205 — missing `Vary: Cookie` header (cache poisoning) |
+| `markdown` | 3.7 → 3.8.1 | CVE-2025-69534 |
 
-### Prerequisites
-- Docker & Docker Compose
-- API credentials for your chosen LLM provider
+**Remaining unfixed:**
+- `diskcache` CVE-2025-69872 — pickle RCE; no patched version released upstream yet
+- `langchain-core` CVE-2026-26013 (SSRF, CVSS LOW) — fix requires 1.2.x, breaking langchain-community 0.3.x compatibility
 
-### Setup
-
-```bash
-# Clone
-git clone https://github.com/davidecampman/sentinel.git
-cd sentinel
-
-# Configure
-cp .env.example .env
-# Edit .env — add LLM provider credentials
-
-# Build & run
-./build.sh
-./run.sh
-```
-
-Open `http://localhost` and configure LLM settings via the UI.
-
-### Environment Variables
-
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
-| `A0_AUTH_LOGIN` | UI login username | Recommended |
-| `A0_AUTH_PASSWORD` | UI login password | Recommended |
-| `PORT` | Host port mapping | Optional (default `80`) |
-| `TLS_CA_BUNDLE` | Path to corporate CA bundle | If behind TLS proxy |
-| `TLS_VERIFY` | Enable/disable TLS verification | Optional |
+### Removed
+- **Update checker** — upstream `update_check.py` phones home to `api.agent-zero.ai` on every user message; removed entirely
 
 ---
 

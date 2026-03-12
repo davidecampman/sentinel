@@ -79,6 +79,23 @@ const model = {
     }
   },
 
+  // Rename a chat
+  async renameChat(id, newName) {
+    const name = (newName || "").trim();
+    if (!name) return;
+    try {
+      await sendJsonData("/chat_rename", { context: id, name });
+      // Optimistically update local state
+      const ctx = this.contexts.find((c) => c.id === id);
+      if (ctx) ctx.name = name;
+      if (this.selectedContext && this.selectedContext.id === id) {
+        this.selectedContext.name = name;
+      }
+    } catch (e) {
+      toastFetchError("Error renaming chat", e);
+    }
+  },
+
   // Delete a chat
   async killChat(id) {
     if (!id) {
