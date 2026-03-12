@@ -2,9 +2,9 @@
 # build.sh — Build the Sentinel image
 #
 # Usage:
-#   ./build.sh                          # builds sentinel:YYYYMMDD
-#   ./build.sh --latest                 # also updates sentinel:latest
-#   ./build.sh --push dockerhub-user    # builds + pushes date-tagged image to Docker Hub
+#   ./build.sh                          # builds sentinel:YYYYMMDD locally (arm64)
+#   ./build.sh --latest                 # also updates sentinel:latest locally
+#   ./build.sh --push dockerhub-user    # multi-arch build (amd64+arm64) + push to Docker Hub
 #   ./build.sh --no-cache               # forces full rebuild
 #
 # To test the new build without touching prod:
@@ -14,7 +14,8 @@
 
 set -euo pipefail
 
-LOCAL_IMAGE="sentinel:$(date +%Y%m%d)"
+DATE_TAG="$(date +%Y%m%d)"
+LOCAL_IMAGE="sentinel:$DATE_TAG"
 NO_CACHE=""
 PUSH=false
 TAG_LATEST=false
@@ -29,22 +30,6 @@ for arg in "$@"; do
   esac
 done
 
-echo "==> Building $LOCAL_IMAGE ..."
-docker build \
-  -f DockerfileLocal \
-  -t "$LOCAL_IMAGE" \
-  --build-arg CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)" \
-  $NO_CACHE \
-  .
-
-echo ""
-echo "Build complete: $LOCAL_IMAGE"
-
-if $TAG_LATEST; then
-  docker tag "$LOCAL_IMAGE" "sentinel:latest"
-  echo "Tagged:  sentinel:latest -> $LOCAL_IMAGE"
-fi
-
 if $PUSH; then
   if [ -z "$DOCKER_USER" ]; then
     echo "ERROR: --push requires a Docker Hub username."
@@ -52,19 +37,46 @@ if $PUSH; then
     exit 1
   fi
 
-  DATE_TAG="$DOCKER_USER/sentinel:$(date +%Y%m%d)"
+  REMOTE_DATE_TAG="$DOCKER_USER/sentinel:$DATE_TAG"
+  TAGS="-t $REMOTE_DATE_TAG"
+  if $TAG_LATEST; then
+    TAGS="$TAGS -t $DOCKER_USER/sentinel:latest"
+  fi
 
-  echo "==> Tagging as $DATE_TAG"
-  docker tag "$LOCAL_IMAGE" "$DATE_TAG"
-
-  echo "==> Pushing to Docker Hub ..."
-  docker push "$DATE_TAG"
+  echo "==> Building multi-arch (linux/amd64,linux/arm64) and pushing to Docker Hub ..."
+  docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    -f DockerfileLocal \
+    $TAGS \
+    --build-arg CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)" \
+    $NO_CACHE \
+    --push \
+    .
 
   echo ""
-  echo "Pushed: $DATE_TAG"
+  echo "Pushed: $REMOTE_DATE_TAG"
+  if $TAG_LATEST; then
+    echo "Pushed: $DOCKER_USER/sentinel:latest"
+  fi
   echo ""
   echo "To run from Docker Hub on any machine:"
-  echo "  AGENT_ZERO_IMAGE=$DATE_TAG ./run.sh"
+  echo "  AGENT_ZERO_IMAGE=$REMOTE_DATE_TAG ./run.sh"
 else
+  echo "==> Building $LOCAL_IMAGE (arm64) ..."
+  docker build \
+    -f DockerfileLocal \
+    -t "$LOCAL_IMAGE" \
+    --build-arg CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)" \
+    $NO_CACHE \
+    .
+
+  echo ""
+  echo "Build complete: $LOCAL_IMAGE"
+
+  if $TAG_LATEST; then
+    docker tag "$LOCAL_IMAGE" "sentinel:latest"
+    echo "Tagged:  sentinel:latest -> $LOCAL_IMAGE"
+  fi
+
   echo "Run with:  ./run.sh"
 fi
