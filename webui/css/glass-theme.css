@@ -253,13 +253,12 @@ body.light-mode {
   border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 8px !important;
 }
-/* AI/neural-network dot-grid background in chat area */
+/* AI/neural-network background in chat area */
 .dark-mode #chat-history {
   background-color: rgba(5, 12, 28, 0.45) !important;
-  background-image:
-    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.22) 2px, transparent 2px),
-    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.06) 1px, transparent 1px) !important;
-  background-size: 60px 60px, 20px 20px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cline x1='0' y1='60' x2='120' y2='60' stroke='%232DD4BF' stroke-opacity='0.18' stroke-width='0.8'/%3E%3Cline x1='60' y1='0' x2='60' y2='120' stroke='%232DD4BF' stroke-opacity='0.18' stroke-width='0.8'/%3E%3Cline x1='0' y1='0' x2='60' y2='60' stroke='%232DD4BF' stroke-opacity='0.10' stroke-width='0.6'/%3E%3Cline x1='120' y1='0' x2='60' y2='60' stroke='%232DD4BF' stroke-opacity='0.10' stroke-width='0.6'/%3E%3Cline x1='0' y1='120' x2='60' y2='60' stroke='%232DD4BF' stroke-opacity='0.10' stroke-width='0.6'/%3E%3Cline x1='120' y1='120' x2='60' y2='60' stroke='%232DD4BF' stroke-opacity='0.10' stroke-width='0.6'/%3E%3Ccircle cx='60' cy='60' r='4' fill='%232DD4BF' fill-opacity='0.55'/%3E%3Ccircle cx='0' cy='60' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Ccircle cx='120' cy='60' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Ccircle cx='60' cy='0' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Ccircle cx='60' cy='120' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%232DD4BF' fill-opacity='0.25'/%3E%3Ccircle cx='120' cy='0' r='2' fill='%232DD4BF' fill-opacity='0.25'/%3E%3Ccircle cx='0' cy='120' r='2' fill='%232DD4BF' fill-opacity='0.25'/%3E%3Ccircle cx='120' cy='120' r='2' fill='%232DD4BF' fill-opacity='0.25'/%3E%3C/svg%3E") !important;
+  background-size: 120px 120px !important;
+  background-repeat: repeat !important;
 }
 
 .dark-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -502,13 +501,12 @@ body.light-mode {
 }
 .light-mode tr:nth-child(even) { background: rgba(210, 235, 255, 0.40) !important; }
 .light-mode tr:hover { background: rgba(195, 228, 248, 0.50) !important; }
-/* AI/neural-network dot-grid background in chat area */
+/* AI/neural-network background in chat area */
 .light-mode #chat-history {
   background-color: rgba(230, 242, 255, 0.50) !important;
-  background-image:
-    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.22) 2px, transparent 2px),
-    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.07) 1px, transparent 1px) !important;
-  background-size: 60px 60px, 20px 20px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cline x1='0' y1='60' x2='120' y2='60' stroke='%230f9683' stroke-opacity='0.20' stroke-width='0.8'/%3E%3Cline x1='60' y1='0' x2='60' y2='120' stroke='%230f9683' stroke-opacity='0.20' stroke-width='0.8'/%3E%3Cline x1='0' y1='0' x2='60' y2='60' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Cline x1='120' y1='0' x2='60' y2='60' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Cline x1='0' y1='120' x2='60' y2='60' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Cline x1='120' y1='120' x2='60' y2='60' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Ccircle cx='60' cy='60' r='4' fill='%230f9683' fill-opacity='0.50'/%3E%3Ccircle cx='0' cy='60' r='2.5' fill='%230f9683' fill-opacity='0.32'/%3E%3Ccircle cx='120' cy='60' r='2.5' fill='%230f9683' fill-opacity='0.32'/%3E%3Ccircle cx='60' cy='0' r='2.5' fill='%230f9683' fill-opacity='0.32'/%3E%3Ccircle cx='60' cy='120' r='2.5' fill='%230f9683' fill-opacity='0.32'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%230f9683' fill-opacity='0.22'/%3E%3Ccircle cx='120' cy='0' r='2' fill='%230f9683' fill-opacity='0.22'/%3E%3Ccircle cx='0' cy='120' r='2' fill='%230f9683' fill-opacity='0.22'/%3E%3Ccircle cx='120' cy='120' r='2' fill='%230f9683' fill-opacity='0.22'/%3E%3C/svg%3E") !important;
+  background-size: 120px 120px !important;
+  background-repeat: repeat !important;
 }
 
 .light-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
