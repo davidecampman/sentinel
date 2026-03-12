@@ -32,7 +32,7 @@ The goal is not to diverge from upstream — it's to layer production-readiness 
 
 ```bash
 # Clone
-git clone https://github.com/davidecampman/agentzero.git sentinel
+git clone https://github.com/davidecampman/sentinel.git
 cd sentinel
 
 # Configure
