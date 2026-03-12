@@ -11,6 +11,9 @@ class RenameChat(Extension):
 
     async def change_name(self):
         try:
+            # skip if user has manually locked the name
+            if self.agent.context.name_locked:
+                return
             # prepare history
             history_text = self.agent.history.output_text()
             ctx_length = min(

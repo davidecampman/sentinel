@@ -130,6 +130,7 @@ def _serialize_context(context: AgentContext):
     return {
         "id": context.id,
         "name": context.name,
+        "name_locked": context.name_locked,
         "created_at": (
             context.created_at.isoformat()
             if context.created_at
@@ -186,6 +187,7 @@ def _deserialize_context(data):
         config=config,
         id=data.get("id", None),  # get new id
         name=data.get("name", None),
+        name_locked=data.get("name_locked", False),
         created_at=(
             datetime.fromisoformat(
                 # older chats may not have created_at - backcompat
