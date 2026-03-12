@@ -217,6 +217,7 @@ git log upstream/main --oneline -10
 - [x] Skill approval workflow
 - [ ] Audit logging (who ran what, when)
 - [ ] Full API authentication audit
+- [ ] 1Password integration for secrets management
 
 ### Phase 2 — Corporate Integrations (Planned)
 - Slack integration
