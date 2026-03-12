@@ -37,14 +37,13 @@ cd sentinel
 
 # Configure
 cp .env.example .env
-# Edit .env — add LLM provider credentials
 
 # Build & run
 ./build.sh
 ./run.sh
 ```
 
-Open `http://localhost` and configure LLM settings via the UI.
+Open `http://localhost` and enter your LLM API key via **Settings → Model**.
 
 To test a new build alongside a running prod instance:
 
@@ -57,7 +56,6 @@ To test a new build alongside a running prod instance:
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
-| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
 | `A0_AUTH_LOGIN` | UI login username | Recommended |
 | `A0_AUTH_PASSWORD` | UI login password | Recommended |
 | `PORT` | Host port mapping | Optional (default `80`) |
