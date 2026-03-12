@@ -1,4 +1,4 @@
-# Agent Zero System Manual
+# Sentinel System Manual
 
 {{ include "agent.system.main.role.md" }}
 
