@@ -7,6 +7,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; display: flex; height: 100vh; }
 
+    /* Shared circuit SVG — defined once as CSS vars via inline style for brevity */
     .panel {
       flex: 1;
       display: flex;
@@ -16,33 +17,20 @@
       padding: 2rem;
       gap: 1rem;
       overflow-y: auto;
+      /* background-attachment: fixed keeps pattern still while content scrolls */
+      background-size: 280px 280px;
+      background-repeat: repeat;
+      background-attachment: fixed;
     }
 
     .dark {
       background-color: rgba(5, 12, 28, 1);
-      background-image:
-        linear-gradient(105deg, transparent 35%, rgba(45,212,191,0.07) 45%, rgba(45,212,191,0.11) 50%, rgba(45,212,191,0.07) 55%, transparent 65%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.20' stroke-width='1.2'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.18' stroke-width='1'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%232DD4BF' stroke-opacity='0.16' stroke-width='0.9'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%232DD4BF' stroke-opacity='0.15' stroke-width='0.8'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.15' stroke-width='0.8'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.12' stroke-width='0.7'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.12' stroke-width='0.7'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.11' stroke-width='0.6'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%232DD4BF' fill-opacity='0.55'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%232DD4BF' fill-opacity='0.48'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%232DD4BF' fill-opacity='0.42'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%232DD4BF' fill-opacity='0.40'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%232DD4BF' fill-opacity='0.36'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%232DD4BF' fill-opacity='0.36'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.30' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%232DD4BF' fill-opacity='0.25' rx='1'/%3E%3C/svg%3E");
-      background-size: 200% 200%, 280px 280px;
-      background-repeat: no-repeat, repeat;
-      background-attachment: scroll, local;
-      animation: electronFlow 8s linear infinite;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.25' stroke-width='1.2'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.22' stroke-width='1'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%232DD4BF' stroke-opacity='0.20' stroke-width='0.9'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%232DD4BF' stroke-opacity='0.17' stroke-width='0.8'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.17' stroke-width='0.8'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.14' stroke-width='0.7'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.14' stroke-width='0.7'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.13' stroke-width='0.6'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%232DD4BF' fill-opacity='0.55'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%232DD4BF' fill-opacity='0.50'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%232DD4BF' fill-opacity='0.45'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%232DD4BF' fill-opacity='0.42'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%232DD4BF' fill-opacity='0.38'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%232DD4BF' fill-opacity='0.38'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.30' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%232DD4BF' fill-opacity='0.25' rx='1'/%3E%3Ccircle cx='70' cy='85' r='4' fill='none' stroke='%232DD4BF' stroke-width='1.5'%3E%3Canimate attributeName='r' values='4;18;4' dur='3s' repeatCount='indefinite' begin='0s'/%3E%3Canimate attributeName='stroke-opacity' values='0.85;0;0.85' dur='3s' repeatCount='indefinite' begin='0s'/%3E%3C/circle%3E%3Ccircle cx='175' cy='85' r='3.5' fill='none' stroke='%232DD4BF' stroke-width='1.5'%3E%3Canimate attributeName='r' values='3.5;16;3.5' dur='3.5s' repeatCount='indefinite' begin='1s'/%3E%3Canimate attributeName='stroke-opacity' values='0.75;0;0.75' dur='3.5s' repeatCount='indefinite' begin='1s'/%3E%3C/circle%3E%3Ccircle cx='130' cy='250' r='3' fill='none' stroke='%232DD4BF' stroke-width='1.2'%3E%3Canimate attributeName='r' values='3;14;3' dur='4s' repeatCount='indefinite' begin='2s'/%3E%3Canimate attributeName='stroke-opacity' values='0.65;0;0.65' dur='4s' repeatCount='indefinite' begin='2s'/%3E%3C/circle%3E%3Ccircle cx='240' cy='105' r='3' fill='none' stroke='%232DD4BF' stroke-width='1.2'%3E%3Canimate attributeName='r' values='3;13;3' dur='3.2s' repeatCount='indefinite' begin='0.7s'/%3E%3Canimate attributeName='stroke-opacity' values='0.65;0;0.65' dur='3.2s' repeatCount='indefinite' begin='0.7s'/%3E%3C/circle%3E%3Ccircle cx='200' cy='140' r='2.5' fill='none' stroke='%232DD4BF' stroke-width='1'%3E%3Canimate attributeName='r' values='2.5;12;2.5' dur='3.8s' repeatCount='indefinite' begin='1.8s'/%3E%3Canimate attributeName='stroke-opacity' values='0.55;0;0.55' dur='3.8s' repeatCount='indefinite' begin='1.8s'/%3E%3C/circle%3E%3C/svg%3E");
     }
 
     .light {
       background-color: rgba(230, 242, 255, 1);
-      background-image:
-        linear-gradient(105deg, transparent 35%, rgba(15,150,131,0.05) 45%, rgba(15,150,131,0.09) 50%, rgba(15,150,131,0.05) 55%, transparent 65%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%230f9683' stroke-opacity='0.22' stroke-width='1.2'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%230f9683' stroke-opacity='0.20' stroke-width='1'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%230f9683' stroke-opacity='0.18' stroke-width='0.9'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%230f9683' stroke-opacity='0.16' stroke-width='0.8'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.16' stroke-width='0.8'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.13' stroke-width='0.7'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.13' stroke-width='0.7'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%230f9683' fill-opacity='0.48'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%230f9683' fill-opacity='0.42'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%230f9683' fill-opacity='0.38'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%230f9683' fill-opacity='0.36'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%230f9683' fill-opacity='0.33'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%230f9683' fill-opacity='0.33'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.28' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%230f9683' fill-opacity='0.23' rx='1'/%3E%3C/svg%3E");
-      background-size: 200% 200%, 280px 280px;
-      background-repeat: no-repeat, repeat;
-      background-attachment: scroll, local;
-      animation: electronFlow 8s linear infinite;
-    }
-
-    @keyframes electronFlow {
-      0%   { background-position: 150% 150%, 0 0; }
-      100% { background-position: -50% -50%, 0 0; }
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%230f9683' stroke-opacity='0.40' stroke-width='1.5'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%230f9683' stroke-opacity='0.35' stroke-width='1.2'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%230f9683' stroke-opacity='0.32' stroke-width='1.1'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%230f9683' stroke-opacity='0.28' stroke-width='1'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.28' stroke-width='1'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.22' stroke-width='0.9'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.22' stroke-width='0.9'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.20' stroke-width='0.8'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%230f9683' fill-opacity='0.65'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%230f9683' fill-opacity='0.60'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%230f9683' fill-opacity='0.55'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%230f9683' fill-opacity='0.52'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%230f9683' fill-opacity='0.48'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%230f9683' fill-opacity='0.48'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.40' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.38' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%230f9683' fill-opacity='0.38' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%230f9683' fill-opacity='0.38' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%230f9683' fill-opacity='0.35' rx='1'/%3E%3Ccircle cx='70' cy='85' r='4' fill='none' stroke='%230f9683' stroke-width='2'%3E%3Canimate attributeName='r' values='4;20;4' dur='3s' repeatCount='indefinite' begin='0s'/%3E%3Canimate attributeName='stroke-opacity' values='0.90;0;0.90' dur='3s' repeatCount='indefinite' begin='0s'/%3E%3C/circle%3E%3Ccircle cx='175' cy='85' r='3.5' fill='none' stroke='%230f9683' stroke-width='2'%3E%3Canimate attributeName='r' values='3.5;18;3.5' dur='3.5s' repeatCount='indefinite' begin='1s'/%3E%3Canimate attributeName='stroke-opacity' values='0.80;0;0.80' dur='3.5s' repeatCount='indefinite' begin='1s'/%3E%3C/circle%3E%3Ccircle cx='130' cy='250' r='3' fill='none' stroke='%230f9683' stroke-width='1.8'%3E%3Canimate attributeName='r' values='3;16;3' dur='4s' repeatCount='indefinite' begin='2s'/%3E%3Canimate attributeName='stroke-opacity' values='0.72;0;0.72' dur='4s' repeatCount='indefinite' begin='2s'/%3E%3C/circle%3E%3Ccircle cx='240' cy='105' r='3' fill='none' stroke='%230f9683' stroke-width='1.8'%3E%3Canimate attributeName='r' values='3;15;3' dur='3.2s' repeatCount='indefinite' begin='0.7s'/%3E%3Canimate attributeName='stroke-opacity' values='0.72;0;0.72' dur='3.2s' repeatCount='indefinite' begin='0.7s'/%3E%3C/circle%3E%3Ccircle cx='200' cy='140' r='2.5' fill='none' stroke='%230f9683' stroke-width='1.5'%3E%3Canimate attributeName='r' values='2.5;14;2.5' dur='3.8s' repeatCount='indefinite' begin='1.8s'/%3E%3Canimate attributeName='stroke-opacity' values='0.65;0;0.65' dur='3.8s' repeatCount='indefinite' begin='1.8s'/%3E%3C/circle%3E%3C/svg%3E");
     }
 
     .label {
@@ -70,30 +58,36 @@
     }
     .light .message {
       background: rgba(255, 255, 255, 0.75);
-      border: 1px solid rgba(45, 212, 191, 0.22);
+      border: 1px solid rgba(15, 150, 131, 0.22);
       color: #1e293b;
     }
-    .message.user {
-      align-self: flex-end;
-    }
+    .message.user { align-self: flex-end; }
     .dark .message.user { background: rgba(28, 45, 95, 0.72); }
     .light .message.user { background: rgba(210, 240, 255, 0.80); }
   </style>
 </head>
 <body>
   <div class="panel dark">
-    <span class="label">Dark mode</span>
+    <span class="label">Dark mode — scroll to test fixed bg</span>
     <div class="message user">Hey, can you help me build a neural network?</div>
     <div class="message">Sure! Let's start with a simple feedforward architecture using PyTorch...</div>
     <div class="message user">What about attention mechanisms?</div>
     <div class="message">Attention allows the model to focus on relevant parts of the input sequence...</div>
+    <div class="message user">Can you show me a transformer block?</div>
+    <div class="message">Of course! The transformer block consists of multi-head self-attention followed by a feed-forward network...</div>
+    <div class="message user">How does positional encoding work?</div>
+    <div class="message">Positional encoding injects sequence position info using sine/cosine functions of different frequencies...</div>
   </div>
   <div class="panel light">
-    <span class="label">Light mode</span>
+    <span class="label">Light mode — scroll to test fixed bg</span>
     <div class="message user">Hey, can you help me build a neural network?</div>
     <div class="message">Sure! Let's start with a simple feedforward architecture using PyTorch...</div>
     <div class="message user">What about attention mechanisms?</div>
     <div class="message">Attention allows the model to focus on relevant parts of the input sequence...</div>
+    <div class="message user">Can you show me a transformer block?</div>
+    <div class="message">Of course! The transformer block consists of multi-head self-attention followed by a feed-forward network...</div>
+    <div class="message user">How does positional encoding work?</div>
+    <div class="message">Positional encoding injects sequence position info using sine/cosine functions of different frequencies...</div>
   </div>
 </body>
 </html>
