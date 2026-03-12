@@ -37,14 +37,13 @@ cd sentinel
 
 # Configure
 cp .env.example .env
-# Edit .env — add LLM provider credentials
 
 # Build & run
 ./build.sh
 ./run.sh
 ```
 
-Open `http://localhost` and configure LLM settings via the UI.
+Open `http://localhost` and enter your LLM API key via **Settings → Model**.
 
 To test a new build alongside a running prod instance:
 
@@ -57,7 +56,6 @@ To test a new build alongside a running prod instance:
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
-| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
 | `A0_AUTH_LOGIN` | UI login username | Recommended |
 | `A0_AUTH_PASSWORD` | UI login password | Recommended |
 | `PORT` | Host port mapping | Optional (default `80`) |
@@ -135,20 +133,38 @@ All four agent profiles have detailed, opinionated instructions for corporate en
 ### 🛠️ Deployment Scripts
 Production-ready scripts for building and running the container:
 
+**`build.sh`** — Build the Docker image
 ```bash
-./build.sh                         # build Docker image
-./build.sh --push <dockerhub-user> # build + push to Docker Hub
-./run.sh                           # start production instance
-./stop.sh                          # stop production instance
-./test.sh                          # start test instance on port 50081
-./test.sh --stop                   # stop test instance
-./run_tests.sh                     # run security test suite
-./run_tests.sh -v                  # verbose test output
+./build.sh                          # build sentinel:<YYYYMMDD>
+./build.sh --latest                 # also tag sentinel:latest locally
+./build.sh --no-cache               # force full rebuild (no Docker layer cache)
+./build.sh --push <dockerhub-user>  # build + push date-tagged image to Docker Hub
+```
+
+**`run.sh`** — Start a Sentinel instance
+```bash
+./run.sh                            # start production instance (port 50080)
+./run.sh --test                     # start test instance (port 50081, isolated volume)
+AGENT_ZERO_IMAGE=myuser/sentinel:20250101 ./run.sh  # run a specific image
+```
+
+**`stop.sh`** — Stop a Sentinel instance
+```bash
+./stop.sh                           # stop production instance
+./stop.sh --test                    # stop test instance
+```
+
+**`run_tests.sh`** — Run the security test suite
+```bash
+./run_tests.sh                      # run security tests
+./run_tests.sh -v                   # verbose output
+./run_tests.sh -k <test-name>       # run a specific test (any pytest flag accepted)
 ```
 
 Multi-instance support via environment variables:
-- `PORT` — configure host port mapping (default `80`)
+- `PORT` — override host port mapping
 - `COMPOSE_PROJECT_NAME` — namespace Docker resources for isolated instances
+- `AGENT_ZERO_IMAGE` — specify which image `run.sh` starts (default `sentinel:latest`)
 
 ---
 
