@@ -3,7 +3,7 @@
 
 Sentinel is a hardened, corporate-ready fork of [Agent Zero](https://github.com/agent0ai/agent-zero) — an open-source autonomous AI agent framework. This project extends the upstream codebase with a focus on making it suitable for self-hosted deployment in enterprise engineering environments.
 
-> **Base project:** [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero) (MIT License)  
+> **Base project:** [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero) (MIT License)
 > **License:** MIT — see [LICENSE](LICENSE)
 
 ---
@@ -22,12 +22,52 @@ The goal is not to diverge from upstream — it's to layer production-readiness 
 
 ---
 
+## Quick Start
+
+### Prerequisites
+- Docker & Docker Compose
+- API credentials for your chosen LLM provider
+
+### Setup
+
+```bash
+# Clone
+git clone https://github.com/davidecampman/agentzero.git sentinel
+cd sentinel
+
+# Configure
+cp .env.example .env
+# Edit .env — add LLM provider credentials
+
+# Build & run
+./build.sh
+./run.sh
+```
+
+Open `http://localhost` and configure LLM settings via the UI.
+
+To test a new build alongside a running prod instance:
+
+```bash
+./test.sh          # starts test instance on port 50081
+./test.sh --stop   # tear it down when done
+```
+
+### Environment Variables
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
+| `A0_AUTH_LOGIN` | UI login username | Recommended |
+| `A0_AUTH_PASSWORD` | UI login password | Recommended |
+| `PORT` | Host port mapping | Optional (default `80`) |
+| `TLS_CA_BUNDLE` | Path to corporate CA bundle | If behind TLS proxy |
+| `TLS_VERIFY` | Enable/disable TLS verification | Optional |
+
+---
+
 ## What's Different from Agent Zero
 
-### Removed
-- **Update checker removed** — upstream `update_check.py` feature disabled; this fork does not phone home to `api.agent-zero.ai`
-
-### Bug Fixes
 ### 🎨 Rebranding — Sentinel
 Full UI rebrand from Agent Zero to Sentinel:
 - New `sn.` monogram logo and favicon (dark charcoal + teal `#2DD4BF`)
@@ -72,8 +112,6 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 
 ---
 
----
-
 ### 💰 Cost Optimization
 Defaults tuned to reduce LLM token costs without sacrificing quality:
 - `ctx_history` reduced to `0.40` (sends 40% of history per turn vs 70% default)
@@ -98,14 +136,14 @@ All four agent profiles have detailed, opinionated instructions for corporate en
 Production-ready scripts for building and running the container:
 
 ```bash
-./build.sh                        # build Docker image
+./build.sh                         # build Docker image
 ./build.sh --push <dockerhub-user> # build + push to Docker Hub
-./run.sh                          # start production instance
-./stop.sh                         # stop production instance
-./test.sh                         # start test instance on port 50081
-./test.sh --stop                  # stop test instance
-./run_tests.sh                    # run security test suite
-./run_tests.sh -v                 # verbose test output
+./run.sh                           # start production instance
+./stop.sh                          # stop production instance
+./test.sh                          # start test instance on port 50081
+./test.sh --stop                   # stop test instance
+./run_tests.sh                     # run security test suite
+./run_tests.sh -v                  # verbose test output
 ```
 
 Multi-instance support via environment variables:
@@ -134,56 +172,8 @@ Patched 25 known CVEs via version bumps (2 remain unfixable pending upstream rel
 - `diskcache` CVE-2025-69872 — pickle RCE; no patched version released upstream yet
 - `langchain-core` CVE-2026-26013 (SSRF, CVSS LOW) — fix requires 1.2.x, breaking langchain-community 0.3.x compatibility
 
-### Security Hardening
-- **RFC endpoint disabled in production** — `/rfc` (arbitrary Python execution) blocked outside development mode; strict module allowlist (`python.helpers.*`, `python.api.*`, `python.tools.*`) enforced even in dev
-- **CSRF protection** — dual-layer validation: session token + runtime-scoped cookie using `secrets.token_urlsafe(32)`; scoped cookie names prevent session collision on shared hosts
-- **WebSocket origin validation** — RFC 6455 compliant; rejects cross-origin connections; handles reverse proxy headers (`X-Forwarded-Host`, `X-Forwarded-Proto`)
-- **DNS rebinding prevention** — origin allowlist defaulting to localhost/127.0.0.1; configurable via `ALLOWED_ORIGINS`
-- **Auth hardening** — SHA256 credential hashing; 1-second delay on failed login (brute force mitigation); session cookies with `SameSite=Strict`
-- **Loopback restriction** — sensitive endpoints restricted to loopback via `requires_loopback()` decorator
-- **API key authentication** — `requires_api_key()` decorator with `X-API-KEY` header validation for MCP/API endpoints
-- **Filename security** — Unicode normalization, forbidden character blocking, Windows reserved name detection, path traversal prevention, 255-byte limit
-- **Skill approval workflow** — imported skills land in `pending/` and require explicit human promotion before execution
-- **Browser agent hardening** — downloads disabled, security constraints enabled, prompt injection defense in system prompt, web content treated as untrusted
-- **Port binding** — container port bound to `127.0.0.1` only, not exposed on network interfaces
-- **nginx hardening** — `server_tokens off` (version hidden)
-
----
-
-## Quick Start
-
-### Prerequisites
-- Docker & Docker Compose
-- API credentials for your chosen LLM provider
-
-### Setup
-
-```bash
-# Clone
-git clone https://github.com/davidecampman/agentzero.git sentinel
-cd sentinel
-
-# Configure
-cp .env.example .env
-# Edit .env — add LLM provider credentials
-
-# Build & run
-./build.sh
-./run.sh
-```
-
-Open `http://localhost` and configure LLM settings via the UI.
-
-### Environment Variables
-
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `LLM_API_KEY` | API key for your chosen LLM provider | Yes |
-| `A0_AUTH_LOGIN` | UI login username | Recommended |
-| `A0_AUTH_PASSWORD` | UI login password | Recommended |
-| `PORT` | Host port mapping | Optional (default `80`) |
-| `TLS_CA_BUNDLE` | Path to corporate CA bundle | If behind TLS proxy |
-| `TLS_VERIFY` | Enable/disable TLS verification | Optional |
+### Removed
+- **Update checker** — upstream `update_check.py` phones home to `api.agent-zero.ai` on every user message; removed entirely
 
 ---
 
