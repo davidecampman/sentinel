@@ -253,13 +253,16 @@ body.light-mode {
   border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 8px !important;
 }
-/* AI/neural-network dot-grid background in chat area */
+/* Circuit-board background + electron flow sweep */
 .dark-mode #chat-history {
   background-color: rgba(5, 12, 28, 0.45) !important;
   background-image:
-    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.22) 2px, transparent 2px),
-    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.06) 1px, transparent 1px) !important;
-  background-size: 60px 60px, 20px 20px !important;
+    linear-gradient(105deg, transparent 35%, rgba(45,212,191,0.07) 45%, rgba(45,212,191,0.11) 50%, rgba(45,212,191,0.07) 55%, transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.20' stroke-width='1.2'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%232DD4BF' stroke-opacity='0.18' stroke-width='1'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%232DD4BF' stroke-opacity='0.16' stroke-width='0.9'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%232DD4BF' stroke-opacity='0.14' stroke-width='0.8'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.14' stroke-width='0.8'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.12' stroke-width='0.7'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%232DD4BF' stroke-opacity='0.12' stroke-width='0.7'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%232DD4BF' stroke-opacity='0.11' stroke-width='0.6'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%232DD4BF' fill-opacity='0.50'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%232DD4BF' fill-opacity='0.45'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%232DD4BF' fill-opacity='0.40'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%232DD4BF' fill-opacity='0.38'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%232DD4BF' fill-opacity='0.35'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.30' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%232DD4BF' fill-opacity='0.28' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%232DD4BF' fill-opacity='0.25' rx='1'/%3E%3C/svg%3E") !important;
+  background-size: 200% 200%, 280px 280px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-attachment: fixed, local !important;
+  animation: electronFlow 8s linear infinite;
 }
 
 .dark-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -502,13 +505,16 @@ body.light-mode {
 }
 .light-mode tr:nth-child(even) { background: rgba(210, 235, 255, 0.40) !important; }
 .light-mode tr:hover { background: rgba(195, 228, 248, 0.50) !important; }
-/* AI/neural-network dot-grid background in chat area */
+/* Circuit-board background + electron flow sweep */
 .light-mode #chat-history {
   background-color: rgba(230, 242, 255, 0.50) !important;
   background-image:
-    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.22) 2px, transparent 2px),
-    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.07) 1px, transparent 1px) !important;
-  background-size: 60px 60px, 20px 20px !important;
+    linear-gradient(105deg, transparent 35%, rgba(15,150,131,0.05) 45%, rgba(15,150,131,0.09) 50%, rgba(15,150,131,0.05) 55%, transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cpath d='M 5,85 H 70 V 50 H 175 V 85 H 250' fill='none' stroke='%230f9683' stroke-opacity='0.22' stroke-width='1.2'/%3E%3Cpath d='M 70,85 V 200 H 130 V 250' fill='none' stroke='%230f9683' stroke-opacity='0.20' stroke-width='1'/%3E%3Cpath d='M 175,85 V 30 H 240 V 105' fill='none' stroke='%230f9683' stroke-opacity='0.18' stroke-width='0.9'/%3E%3Cpath d='M 5,170 H 45 V 200 H 130' fill='none' stroke='%230f9683' stroke-opacity='0.16' stroke-width='0.8'/%3E%3Cpath d='M 200,140 H 255 V 200 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.16' stroke-width='0.8'/%3E%3Cpath d='M 130,250 H 200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.13' stroke-width='0.7'/%3E%3Cpath d='M 240,105 H 280' fill='none' stroke='%230f9683' stroke-opacity='0.13' stroke-width='0.7'/%3E%3Cpath d='M 45,200 V 275' fill='none' stroke='%230f9683' stroke-opacity='0.12' stroke-width='0.6'/%3E%3Ccircle cx='70' cy='85' r='4' fill='%230f9683' fill-opacity='0.48'/%3E%3Ccircle cx='175' cy='85' r='3.5' fill='%230f9683' fill-opacity='0.42'/%3E%3Ccircle cx='130' cy='250' r='3' fill='%230f9683' fill-opacity='0.38'/%3E%3Ccircle cx='240' cy='105' r='3' fill='%230f9683' fill-opacity='0.36'/%3E%3Ccircle cx='45' cy='200' r='2.5' fill='%230f9683' fill-opacity='0.33'/%3E%3Ccircle cx='200' cy='140' r='2.5' fill='%230f9683' fill-opacity='0.33'/%3E%3Crect x='2' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.28' rx='1'/%3E%3Crect x='247' y='82' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='237' y='27' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='127' y='247' width='6' height='6' fill='%230f9683' fill-opacity='0.26' rx='1'/%3E%3Crect x='2' y='167' width='6' height='6' fill='%230f9683' fill-opacity='0.23' rx='1'/%3E%3C/svg%3E") !important;
+  background-size: 200% 200%, 280px 280px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-attachment: fixed, local !important;
+  animation: electronFlow 8s linear infinite;
 }
 
 .light-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -555,4 +561,9 @@ body.light-mode {
 .light-mode #send-button:hover {
     background-color: #0b7a6a !important;
     box-shadow: 0 4px 16px rgba(15, 150, 131, 0.35) !important;
+}
+
+@keyframes electronFlow {
+  0%   { background-position: 150% 150%, 0 0; }
+  100% { background-position: -50% -50%, 0 0; }
 }
