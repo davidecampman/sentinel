@@ -219,7 +219,7 @@ const model = {
         window.open("https://davidcampman.com", "_blank");
         break;
       case "github":
-        window.open("https://github.com/davidecampman/agentzero", "_blank");
+        window.open("https://github.com/davidecampman/sentinel", "_blank");
         break;
     }
   },

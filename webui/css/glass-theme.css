@@ -238,18 +238,30 @@ body.light-mode {
 }
 
 /* Misc */
-.dark-mode .dropdown {
-  background: rgba(8, 16, 44, 0.96) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.18) !important;
+.dark-mode .dropdown,
+.dark-mode .dropdown-menu,
+.dark-mode .quick-actions-dropdown {
+  background: rgba(8, 16, 44, 0.97) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
   border-radius: 10px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
 }
 .dark-mode pre, .dark-mode code {
   background: rgba(4, 10, 28, 0.82) !important;
   border: 1px solid rgba(45, 212, 191, 0.10) !important;
   border-radius: 8px !important;
 }
+/* AI/neural-network dot-grid background in chat area */
+.dark-mode #chat-history {
+  background-color: rgba(5, 12, 28, 0.45) !important;
+  background-image:
+    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.22) 2px, transparent 2px),
+    radial-gradient(ellipse at 0 0, rgba(45, 212, 191, 0.06) 1px, transparent 1px) !important;
+  background-size: 60px 60px, 20px 20px !important;
+}
+
 .dark-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
 .dark-mode ::-webkit-scrollbar-track { background: rgba(10,18,40,0.3); }
 .dark-mode ::-webkit-scrollbar-thumb { background: rgba(45,212,191,0.22); border-radius: 10px; }
@@ -472,13 +484,15 @@ body.light-mode {
 }
 
 /* Misc */
-.light-mode .dropdown {
-  background: rgba(240, 250, 255, 0.97) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+.light-mode .dropdown,
+.light-mode .dropdown-menu,
+.light-mode .quick-actions-dropdown {
+  background: rgba(240, 250, 255, 0.98) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(45, 212, 191, 0.28) !important;
   border-radius: 10px !important;
-  box-shadow: 0 12px 40px rgba(80,130,180,0.20) !important;
+  box-shadow: 0 16px 48px rgba(80, 130, 180, 0.30) !important;
 }
 .light-mode pre, .light-mode code {
   background: rgba(215, 235, 255, 0.82) !important;
@@ -488,6 +502,15 @@ body.light-mode {
 }
 .light-mode tr:nth-child(even) { background: rgba(210, 235, 255, 0.40) !important; }
 .light-mode tr:hover { background: rgba(195, 228, 248, 0.50) !important; }
+/* AI/neural-network dot-grid background in chat area */
+.light-mode #chat-history {
+  background-color: rgba(230, 242, 255, 0.50) !important;
+  background-image:
+    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.22) 2px, transparent 2px),
+    radial-gradient(ellipse at 0 0, rgba(15, 150, 131, 0.07) 1px, transparent 1px) !important;
+  background-size: 60px 60px, 20px 20px !important;
+}
+
 .light-mode ::-webkit-scrollbar { width: 5px; height: 5px; }
 .light-mode ::-webkit-scrollbar-track { background: rgba(180,210,240,0.3); }
 .light-mode ::-webkit-scrollbar-thumb { background: rgba(15,150,131,0.30); border-radius: 10px; }
