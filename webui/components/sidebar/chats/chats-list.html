@@ -22,18 +22,38 @@
 
         <ul class="config-list chats-config-list no-scrollbar" x-show="$store.chats.contexts.length > 0">
           <template x-for="context in $store.chats.contexts" :key="context.id">
-            <li>
+            <li x-data="{ editing: false, editName: '' }">
               <div :class="{'chat-container': true, 'chat-selected': context.id === $store.chats.selected}"
-                @click="$store.chats.selectChat(context.id)">
+                @click="!editing && $store.chats.selectChat(context.id)">
                 <div class="chat-list-button">
                   <span :class="{'project-color-ball': true, 'heartbeat': context.running}"
                     :style="context.project?.color ? { backgroundColor: context.project.color } : { border: '1px solid var(--color-border)' }"></span>
-                  <span class="chat-name"
-                    x-text="context.name ? context.name : 'Chat #' + context.no"></span>
+                  <template x-if="!editing">
+                    <span class="chat-name"
+                      x-text="context.name ? context.name : 'Chat #' + context.no"
+                      @dblclick.stop="editName = context.name || ('Chat #' + context.no); editing = true; $nextTick(() => $el.closest('li').querySelector('.chat-rename-input')?.select())">
+                    </span>
+                  </template>
+                  <template x-if="editing">
+                    <input class="chat-rename-input"
+                      x-model="editName"
+                      @click.stop
+                      @keydown.enter.stop="$store.chats.renameChat(context.id, editName); editing = false"
+                      @keydown.escape.stop="editing = false"
+                      @blur="$store.chats.renameChat(context.id, editName); editing = false"
+                      x-init="$nextTick(() => $el.focus(); $el.select())"
+                    />
+                  </template>
                 </div>
-                <button class="btn-icon-action chat-list-action-btn" title="Close chat" @click.stop="$confirmClick($event, () => $store.chats.killChat(context.id))">
-                  <span class="material-symbols-outlined">close</span>
-                </button>
+                <div class="chat-action-buttons">
+                  <button class="btn-icon-action chat-list-action-btn" title="Rename chat"
+                    @click.stop="editName = context.name || ('Chat #' + context.no); editing = true; $nextTick(() => $el.closest('li').querySelector('.chat-rename-input')?.select())">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="btn-icon-action chat-list-action-btn" title="Close chat" @click.stop="$confirmClick($event, () => $store.chats.killChat(context.id))">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
               </div>
             </li>
           </template>
@@ -115,29 +135,48 @@
       font-size: var(--font-size-small);
     }
 
+    .chat-action-buttons {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
     .chat-list-action-btn {
       flex-shrink: 0;
       margin-right: 8px;
+    }
+
+    .chat-rename-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--color-border);
+      outline: none;
+      color: inherit;
+      font-size: var(--font-size-small);
+      padding: 0;
+      width: 100%;
     }
 
     .chat-container:hover{
       background-color: var(--color-background-hover);
     }
 
-    .device-pointer .chat-container .chat-list-action-btn {
+    .device-pointer .chat-container .chat-action-buttons {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
       transition: opacity 0s;
     }
 
-    .device-pointer .chat-container:hover .chat-list-action-btn {
+    .device-pointer .chat-container:hover .chat-action-buttons {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
     }
 
-    .device-touch .chats-list-container .chat-list-action-btn {
+    .device-touch .chats-list-container .chat-action-buttons {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
