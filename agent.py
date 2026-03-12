@@ -54,6 +54,7 @@ class AgentContext:
         config: "AgentConfig",
         id: str | None = None,
         name: str | None = None,
+        name_locked: bool = False,
         agent0: "Agent|None" = None,
         log: Log.Log | None = None,
         paused: bool = False,
@@ -80,6 +81,7 @@ class AgentContext:
 
         # initialize state
         self.name = name
+        self.name_locked = name_locked  # True when user has manually renamed; suppresses auto-rename
         self.config = config
         self.data = data or {}
         self.output_data = output_data or {}

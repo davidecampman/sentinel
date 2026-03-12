@@ -19,6 +19,7 @@ class RenameChat(ApiHandler):
             return Response(status_code=404, content={"error": "Context not found."})
 
         context.name = new_name
+        context.name_locked = True
         persist_chat.save_tmp_chat(context)
 
         from python.helpers.state_monitor_integration import mark_dirty_all
