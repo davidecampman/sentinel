@@ -6,8 +6,10 @@ A hardened, self-hosted fork of [Agent Zero](https://github.com/frdel/agent-zero
 
 ## Changes & Features
 
+### Removed
+- **Update checker removed** — upstream `update_check.py` feature disabled; this fork does not phone home to `api.agent-zero.ai`
+
 ### Bug Fixes
-- **Fix JSON parse error on message send** — syntax error in `update_check.py` (stray comma in `httpx.AsyncClient(,...)`) caused a 500 response on every prompt submission
 
 ### Docker & Deployment
 - **Date-tagged builds** — `./build.sh` tags images as `agent-zero-hardened:YYYYMMDD` instead of overwriting `:latest`
