@@ -38,6 +38,8 @@ body.light-mode {
   --color-highlight:       #2DD4BF;
   --color-accent:          #2DD4BF;
   --color-table-row:       rgba(20, 35, 70, 0.45);
+  --color-text:            #e2e8f0;
+  --color-text-muted:      rgba(180, 200, 220, 0.80);
 }
 
 /* Sidebar */
