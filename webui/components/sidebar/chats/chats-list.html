@@ -41,7 +41,7 @@
                       @keydown.enter.stop="$store.chats.renameChat(context.id, editName); editing = false"
                       @keydown.escape.stop="editing = false"
                       @blur="$store.chats.renameChat(context.id, editName); editing = false"
-                      x-init="$nextTick(() => $el.focus(); $el.select())"
+                      x-init="$nextTick(() => { $el.focus(); $el.select(); })"
                     />
                   </template>
                 </div>
