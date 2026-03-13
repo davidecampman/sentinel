@@ -182,3 +182,39 @@ def apply_env_vars() -> None:
             _litellm.ssl_verify = True
     except ImportError:
         pass
+
+    # Write a shell-sourceable env file so SearXNG (a separate supervisord
+    # process in its own virtualenv) can pick up the same TLS settings.
+    try:
+        from python.helpers import files as _files
+        env_path = _files.get_abs_path("usr/tls.env")
+        os.makedirs(os.path.dirname(env_path), exist_ok=True)
+        if verify is False:
+            lines = [
+                "export PYTHONHTTPSVERIFY=0",
+                "export CURL_CA_BUNDLE=",
+                "unset REQUESTS_CA_BUNDLE",
+                "unset SSL_CERT_FILE",
+                "unset NODE_EXTRA_CA_CERTS",
+            ]
+        elif isinstance(verify, str):
+            lines = [
+                f"export REQUESTS_CA_BUNDLE={verify}",
+                f"export SSL_CERT_FILE={verify}",
+                f"export CURL_CA_BUNDLE={verify}",
+                f"export NODE_EXTRA_CA_CERTS={verify}",
+                "unset PYTHONHTTPSVERIFY",
+            ]
+        else:
+            lines = [
+                "unset PYTHONHTTPSVERIFY",
+                "unset REQUESTS_CA_BUNDLE",
+                "unset SSL_CERT_FILE",
+                "unset CURL_CA_BUNDLE",
+                "unset NODE_EXTRA_CA_CERTS",
+            ]
+        with open(env_path, "w") as _f:
+            _f.write("\n".join(lines) + "\n")
+        os.chmod(env_path, 0o644)
+    except Exception:
+        pass
