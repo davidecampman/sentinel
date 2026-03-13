@@ -15,7 +15,7 @@ exec python /a0/run_tunnel.py \
     --dockerized=true \
     --port=80 \
     --tunnel_api_port=55520 \
-    --host="0.0.0.0" \
+    --host="127.0.0.1" \
     --code_exec_docker_enabled=false \
     --code_exec_ssh_enabled=true \
     # --code_exec_ssh_addr="localhost" \
