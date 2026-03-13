@@ -900,8 +900,14 @@ def _merge_provider_defaults(
 
     # Inject TLS settings as per-call kwargs so litellm providers that check
     # them explicitly respect the global TLS configuration.
+    # Bedrock does not accept ssl_verify as a call-level param — it forwards
+    # unknown kwargs to the request body and raises "extraneous key [ssl_verify]".
+    # For Bedrock the global litellm.ssl_verify (set via apply_env_vars) is used.
     from python.helpers import tls as _tls
-    for k, v in _tls.get_litellm_kwargs().items():
+    _tls_kwargs = _tls.get_litellm_kwargs()
+    if "bedrock" in provider_name.lower():
+        _tls_kwargs = {k: v for k, v in _tls_kwargs.items() if k != "ssl_verify"}
+    for k, v in _tls_kwargs.items():
         kwargs.setdefault(k, v)
 
     return provider_name, kwargs
