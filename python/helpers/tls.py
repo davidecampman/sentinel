@@ -116,10 +116,9 @@ def get_litellm_kwargs() -> dict:
     """
     Return keyword arguments to inject into litellm completion/embedding calls.
 
-    LiteLLM respects these per-call kwargs to configure SSL for its internal
-    HTTP clients:
-      ssl_verify      – False disables cert verification; True (default) verifies
-      ssl_certificate – path to a PEM CA bundle (only set when a custom bundle is configured)
+    LiteLLM's get_ssl_configuration() uses ssl_verify for both the boolean
+    disable flag AND the CA bundle path (a string path is accepted directly).
+    ssl_certificate is for mutual-TLS client certs — do NOT use it for CA bundles.
 
     Usage::
         kwargs.update(tls.get_litellm_kwargs())
@@ -129,7 +128,9 @@ def get_litellm_kwargs() -> dict:
     if verify is False:
         return {"ssl_verify": False}
     if isinstance(verify, str):
-        return {"ssl_verify": True, "ssl_certificate": verify}
+        # Pass the CA bundle path as ssl_verify — litellm passes it straight
+        # through to httpx as the verify= parameter (string path accepted).
+        return {"ssl_verify": verify}
     return {}
 
 
@@ -171,14 +172,13 @@ def apply_env_vars() -> None:
     # kwargs.  Lazy import so tls.py has no hard dependency on litellm.
     try:
         import litellm as _litellm  # type: ignore
+        # ssl_verify accepts bool OR a CA bundle path string.
+        # ssl_certificate is for mutual-TLS client certs — never set it here.
         if verify is False:
             _litellm.ssl_verify = False
-            _litellm.ssl_certificate = None
         elif isinstance(verify, str):
-            _litellm.ssl_verify = True
-            _litellm.ssl_certificate = verify
+            _litellm.ssl_verify = verify  # CA bundle path, not ssl_certificate
         else:
             _litellm.ssl_verify = True
-            _litellm.ssl_certificate = None
     except ImportError:
         pass
