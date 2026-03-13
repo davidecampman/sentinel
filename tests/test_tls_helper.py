@@ -172,12 +172,14 @@ class TestGetLitellmKwargs:
             kwargs = tls.get_litellm_kwargs()
             assert kwargs.get("ssl_verify") is False
 
-    def test_returns_ssl_certificate_when_bundle_set(self):
+    def test_returns_ssl_verify_as_bundle_path(self):
         from python.helpers import tls
         with patch("python.helpers.settings.get_settings", return_value=_settings(True, "/path/ca.pem")):
             kwargs = tls.get_litellm_kwargs()
-            assert kwargs.get("ssl_verify") is True
-            assert kwargs.get("ssl_certificate") == "/path/ca.pem"
+            # CA bundle path goes into ssl_verify, NOT ssl_certificate
+            # (ssl_certificate is for mutual-TLS client certs in litellm)
+            assert kwargs.get("ssl_verify") == "/path/ca.pem"
+            assert "ssl_certificate" not in kwargs
 
     def test_returns_empty_dict_for_default(self):
         from python.helpers import tls
