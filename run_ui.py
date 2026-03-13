@@ -412,6 +412,13 @@ def configure_websocket_namespaces(
 def run():
     PrintStyle().print("Initializing framework...")
 
+    # Apply TLS env vars from persisted settings as early as possible so that
+    # every subsequent network call (HuggingFace, SentenceTransformers, etc.)
+    # uses the correct CA bundle.  Must happen before initialize_migration()
+    # because any network call made during migration would also need TLS.
+    from python.helpers import tls as _tls
+    _tls.apply_env_vars()
+
     # migrate data before anything else
     initialize.initialize_migration()
 

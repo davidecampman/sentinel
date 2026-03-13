@@ -610,6 +610,27 @@ def _apply_settings(previous: Settings | None):
     # Apply TLS environment variables whenever settings change.
     from python.helpers import tls as _tls
     _tls.apply_env_vars()
+
+    # Restart SearXNG when TLS settings change so it sources the updated
+    # /a0/usr/tls.env on its next start.  SearXNG runs in its own supervisord
+    # process and cannot inherit env vars from us at runtime.
+    tls_changed = not previous or (
+        _settings.get("tls_verify") != previous.get("tls_verify")
+        or _settings.get("tls_ca_bundle") != previous.get("tls_ca_bundle")
+    )
+    if tls_changed:
+        import subprocess
+        from python.helpers import runtime as _runtime
+        if _runtime.is_dockerized():
+            try:
+                subprocess.Popen(
+                    ["supervisorctl", "restart", "run_searxng"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                pass
+
     if _settings:
         from agent import AgentContext
         from initialize import initialize_agent

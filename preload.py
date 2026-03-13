@@ -7,6 +7,14 @@ import models
 
 async def preload():
     try:
+        # Apply TLS env vars before any network calls (HuggingFace, etc.) so
+        # that the corporate CA bundle is in place for the whole preload phase.
+        # Use get_settings() (not get_default_settings()) to pick up the saved
+        # CA bundle path; _apply_settings() is only triggered by set_settings()
+        # so env vars would otherwise never be set at startup.
+        from python.helpers import tls as _tls
+        _tls.apply_env_vars()
+
         set = settings.get_default_settings()
 
         # preload whisper model
