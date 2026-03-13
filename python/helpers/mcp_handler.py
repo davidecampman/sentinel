@@ -1077,9 +1077,12 @@ class CustomHTTPClientFactory(ABC):
         if auth is not None:
             kwargs["auth"] = auth
 
-        # Use global TLS setting unless server explicitly disables verification
-        _global_verify = _tls.get_verify()
-        effective_verify = self.verify if not self.verify else _global_verify
+        # Use global TLS setting unless server explicitly disables verification.
+        # get_ssl_context() returns ssl.SSLContext or False — both accepted by httpx.
+        # get_verify() is not used here because it can return a string path which
+        # newer httpx versions do not accept for the verify parameter.
+        _global_ssl = _tls.get_ssl_context()
+        effective_verify = self.verify if not self.verify else _global_ssl
         return httpx.AsyncClient(**kwargs, verify=effective_verify)
 
 class MCPClientRemote(MCPClientBase):

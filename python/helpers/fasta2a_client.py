@@ -41,7 +41,7 @@ class AgentConnection:
         if token:
             headers["Authorization"] = f"Bearer {token}"
             headers["X-API-KEY"] = token
-        self._http_client = httpx.AsyncClient(timeout=timeout, headers=headers, verify=_tls.get_verify())  # type: ignore
+        self._http_client = httpx.AsyncClient(timeout=timeout, headers=headers, verify=_tls.get_ssl_context())  # type: ignore
         self._a2a_client = A2AClient(base_url=self.agent_url, http_client=self._http_client)  # type: ignore
         self._agent_card: Optional[Dict[str, Any]] = None
         # Track conversation context automatically
