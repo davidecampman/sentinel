@@ -159,3 +159,28 @@ class TestApplyEnvVars:
             tls.apply_env_vars()
             assert "REQUESTS_CA_BUNDLE" not in os.environ
             assert "PYTHONHTTPSVERIFY" not in os.environ
+
+
+# ---------------------------------------------------------------------------
+# get_litellm_kwargs()
+# ---------------------------------------------------------------------------
+
+class TestGetLitellmKwargs:
+    def test_returns_ssl_verify_false_when_disabled(self):
+        from python.helpers import tls
+        with patch("python.helpers.settings.get_settings", return_value=_settings(False)):
+            kwargs = tls.get_litellm_kwargs()
+            assert kwargs.get("ssl_verify") is False
+
+    def test_returns_ssl_certificate_when_bundle_set(self):
+        from python.helpers import tls
+        with patch("python.helpers.settings.get_settings", return_value=_settings(True, "/path/ca.pem")):
+            kwargs = tls.get_litellm_kwargs()
+            assert kwargs.get("ssl_verify") is True
+            assert kwargs.get("ssl_certificate") == "/path/ca.pem"
+
+    def test_returns_empty_dict_for_default(self):
+        from python.helpers import tls
+        with patch("python.helpers.settings.get_settings", return_value=_settings(True, "")):
+            kwargs = tls.get_litellm_kwargs()
+            assert kwargs == {}

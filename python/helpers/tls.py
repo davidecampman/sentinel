@@ -112,11 +112,33 @@ def get_playwright_args() -> list[str]:
     return args
 
 
+def get_litellm_kwargs() -> dict:
+    """
+    Return keyword arguments to inject into litellm completion/embedding calls.
+
+    LiteLLM respects these per-call kwargs to configure SSL for its internal
+    HTTP clients:
+      ssl_verify      – False disables cert verification; True (default) verifies
+      ssl_certificate – path to a PEM CA bundle (only set when a custom bundle is configured)
+
+    Usage::
+        kwargs.update(tls.get_litellm_kwargs())
+        litellm.acompletion(model=..., messages=..., **kwargs)
+    """
+    verify = get_verify()
+    if verify is False:
+        return {"ssl_verify": False}
+    if isinstance(verify, str):
+        return {"ssl_verify": True, "ssl_certificate": verify}
+    return {}
+
+
 def apply_env_vars() -> None:
     """
     Export TLS settings as environment variables so that libraries which
     respect them (requests, httpx, curl, openssl) pick up the right certs
-    automatically.
+    automatically.  Also configures LiteLLM's global SSL properties so that
+    all subsequent litellm calls use the correct CA bundle / verification mode.
 
     Should be called once during _apply_settings().
     """
@@ -143,3 +165,20 @@ def apply_env_vars() -> None:
         os.environ.pop("SSL_CERT_FILE", None)
         os.environ.pop("CURL_CA_BUNDLE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
+
+    # Configure LiteLLM global SSL properties so all subsequent litellm calls
+    # inherit the correct verification mode / CA bundle without needing per-call
+    # kwargs.  Lazy import so tls.py has no hard dependency on litellm.
+    try:
+        import litellm as _litellm  # type: ignore
+        if verify is False:
+            _litellm.ssl_verify = False
+            _litellm.ssl_certificate = None
+        elif isinstance(verify, str):
+            _litellm.ssl_verify = True
+            _litellm.ssl_certificate = verify
+        else:
+            _litellm.ssl_verify = True
+            _litellm.ssl_certificate = None
+    except ImportError:
+        pass

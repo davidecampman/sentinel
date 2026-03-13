@@ -898,6 +898,12 @@ def _merge_provider_defaults(
         for k, v in _normalize_values(global_kwargs).items():
             kwargs.setdefault(k, v)
 
+    # Inject TLS settings as per-call kwargs so litellm providers that check
+    # them explicitly respect the global TLS configuration.
+    from python.helpers import tls as _tls
+    for k, v in _tls.get_litellm_kwargs().items():
+        kwargs.setdefault(k, v)
+
     return provider_name, kwargs
 
 
