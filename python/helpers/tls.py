@@ -24,7 +24,10 @@ if TYPE_CHECKING:
 
 def get_verify() -> Union[bool, str]:
     """
-    Return the value to pass as *verify* to requests / httpx.
+    Return the value to pass as *verify* to the requests library.
+
+    Do NOT use this for httpx — httpx does not accept a string path for
+    verify in newer versions.  Use get_ssl_context() for httpx clients.
 
     Returns:
         False           – verification disabled
