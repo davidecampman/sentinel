@@ -108,6 +108,8 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 - Custom CA bundle upload via Settings → Network → TLS (supports `.pem`, `.crt`, `.cer`, `.ca-bundle`)
 - TLS settings propagated to **all** HTTP clients: `aiohttp`, `httpx`, `requests`, Playwright, IMAPClient
 
+The Ubuntu 24.04 base image also supports baking a corporate CA directly into the image at build time via `update-ca-certificates`. Add your `.crt` to `/usr/local/share/ca-certificates/` in the Dockerfile and run `update-ca-certificates` — useful if you prefer a fully self-contained image over the runtime-upload flow.
+
 ---
 
 ### 💰 Cost Optimization
