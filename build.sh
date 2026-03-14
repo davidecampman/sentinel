@@ -2,19 +2,19 @@
 # build.sh — Build the Sentinel image
 #
 # Usage:
-#   ./build.sh                          # builds sentinel:YYYYMMDD locally (arm64)
+#   ./build.sh                          # builds sentinel:YYYYMMDD_HH_MM locally (arm64)
 #   ./build.sh --latest                 # also updates sentinel:latest locally
 #   ./build.sh --push dockerhub-user    # multi-arch build (amd64+arm64) + push to Docker Hub
 #   ./build.sh --no-cache               # forces full rebuild
 #
 # To test the new build without touching prod:
-#   AGENT_ZERO_IMAGE=sentinel:YYYYMMDD ./run.sh
+#   AGENT_ZERO_IMAGE=sentinel:YYYYMMDD_HH_MM ./run.sh
 #
 # To promote to prod, update AGENT_ZERO_IMAGE in your .env
 
 set -euo pipefail
 
-DATE_TAG="$(date +%Y%m%d)"
+DATE_TAG="$(date +%Y%m%d_%H_%M)"
 LOCAL_IMAGE="sentinel:$DATE_TAG"
 NO_CACHE=""
 PUSH=false
