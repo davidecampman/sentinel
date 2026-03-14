@@ -1,7 +1,7 @@
 # Sentinel
 ### Enterprise AI. Hardened by design.
 
-Sentinel is a hardened, corporate-ready fork of [Agent Zero](https://github.com/agent0ai/agent-zero) — an open-source autonomous AI agent framework. This project extends the upstream codebase with a focus on making it suitable for self-hosted deployment in enterprise engineering environments.
+Sentinel is a hardened, corporate-ready fork of [Agent Zero](https://github.com/agent0ai/agent-zero) — an open-source autonomous AI agent framework. This project extends the original codebase with a focus on making it suitable for self-hosted deployment in enterprise engineering environments.
 
 > **Base project:** [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero) (MIT License)
 > **License:** MIT — see [LICENSE](LICENSE)
@@ -18,7 +18,7 @@ Agent Zero is a powerful tool, but its defaults are oriented toward individual d
 - Refined agent profiles tuned for software development workflows
 - Cleaner UI with corporate-friendly branding
 
-The goal is not to diverge from upstream — it's to layer production-readiness on top of it, while staying mergeable with upstream improvements.
+The goal is to layer production-readiness on top of the Agent Zero foundation.
 
 ---
 
@@ -108,6 +108,8 @@ Centralized TLS configuration for corporate environments with TLS inspection pro
 - Custom CA bundle upload via Settings → Network → TLS (supports `.pem`, `.crt`, `.cer`, `.ca-bundle`)
 - TLS settings propagated to **all** HTTP clients: `aiohttp`, `httpx`, `requests`, Playwright, IMAPClient
 
+The Ubuntu 24.04 base image also supports baking a corporate CA directly into the image at build time via `update-ca-certificates`. Add your `.crt` to `/usr/local/share/ca-certificates/` in the Dockerfile and run `update-ca-certificates` — useful if you prefer a fully self-contained image over the runtime-upload flow.
+
 ---
 
 ### 💰 Cost Optimization
@@ -190,18 +192,6 @@ Patched 25 known CVEs via version bumps (2 remain unfixable pending upstream rel
 
 ### Removed
 - **Update checker** — upstream `update_check.py` phones home to `api.agent-zero.ai` on every user message; removed entirely
-
----
-
-## Upstream Compatibility
-
-Sentinel is designed to stay mergeable with upstream Agent Zero. All Sentinel-specific changes are annotated with `# SENTINEL:` comments in the Python source.
-
-To check for upstream updates:
-```bash
-git fetch upstream
-git log upstream/main --oneline -10
-```
 
 ---
 
