@@ -8,7 +8,7 @@
 - Language: Python (primary), JavaScript (WebUI)
 - LLM Backend: AWS Bedrock (Anthropic Claude, Amazon Nova)
 - Deployment: Docker, self-hosted
-- OS: Kali/Debian Linux
+- OS: Ubuntu 24.04 LTS
 - Repo: /a0/usr/projects/agent_zero_corporate_edition/agentzero
 
 ## Coding Rules — Always Follow
