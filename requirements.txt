@@ -3,7 +3,9 @@ ansio==0.0.1
 browser-use==0.5.11
 docker==7.1.0
 duckduckgo-search==6.1.12
+chromadb==1.5.5
 faiss-cpu==1.11.0
+fastapi==0.135.1
 fastmcp==2.14.0
 fasta2a==0.5.0
 flask[async]==3.1.3
