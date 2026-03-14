@@ -14,9 +14,9 @@
 
           <div class="field">
             <div class="field-label">
-              <div class="field-title">Default agent profile</div>
+              <div class="field-title">Profile users talk to</div>
               <div class="field-description">
-                Subdirectory of /agents folder to be used by default agent no. 0. Subordinate agents can be spawned with other profiles, that is on their superior agent to decide. This setting affects the behaviour of the top level agent you communicate with.
+                The agent profile that users communicate with directly. Subordinate agents can be spawned with other profiles by the superior agent.
               </div>
             </div>
             <div class="field-control">
@@ -63,8 +63,8 @@
 
             <div class="field">
               <div class="field-label">
-                <div class="field-title">Profile</div>
-                <div class="field-description">Select the agent profile to configure.</div>
+                <div class="field-title">Profile to configure</div>
+                <div class="field-description">Select which agent profile's chat model you want to override.</div>
               </div>
               <div class="field-control">
                 <select x-model="selectedProfile">
