@@ -24,6 +24,7 @@ class SubAgentListItem(BaseModel):
     path: str = ""
     origin: list[Origin] = []
     enabled: bool = True
+    hidden: bool = False
     model_overrides: dict[str, Any] = {}
 
     @model_validator(mode="after")

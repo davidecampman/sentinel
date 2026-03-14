@@ -1,5 +1,6 @@
 {
   "title": "Default",
   "description": "Default prompt file templates. Should be inherited and overriden by specialized prompt profiles.",
-  "context": ""
+  "context": "",
+  "hidden": true
 }
