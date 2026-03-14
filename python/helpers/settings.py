@@ -246,19 +246,18 @@ def _ensure_option_present(options: list[OptionT] | None, current_value: str | N
 def convert_out(settings: Settings) -> SettingsOutput:
     from python.helpers import subagents as _subagents
 
+    agent_subdirs = [{"value": subdir, "label": subdir}
+        for subdir in files.get_subdirectories("agents")
+        if subdir != "_example"]
+
     profile_model_overrides: dict[str, dict[str, Any]] = {}
-    agent_subdirs = []
-    for subdir in files.get_subdirectories("agents"):
-        if subdir == "_example":
-            continue
+    for subdir_opt in agent_subdirs:
+        pname = subdir_opt["value"]
         try:
-            agent_data = _subagents.load_agent_data(subdir)
-            if agent_data.hidden:
-                continue
-            profile_model_overrides[subdir] = agent_data.model_overrides or {}
+            agent_data = _subagents.load_agent_data(pname)
+            profile_model_overrides[pname] = agent_data.model_overrides or {}
         except Exception:
-            profile_model_overrides[subdir] = {}
-        agent_subdirs.append({"value": subdir, "label": subdir})
+            profile_model_overrides[pname] = {}
 
     out = SettingsOutput(
         settings = settings.copy(),
