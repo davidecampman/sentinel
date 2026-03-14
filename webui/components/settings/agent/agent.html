@@ -46,19 +46,33 @@
 
           <div
             x-data="{
-              get profile() { return $store.settings.settings?.agent_profile || ''; },
+              selectedProfile: $store.settings.settings?.agent_profile || '',
               get overrides() {
                 const pmo = $store.settings.additional?.profile_model_overrides;
-                const p = this.profile;
+                const p = this.selectedProfile;
                 if (!pmo || !p) return {};
                 if (!pmo[p]) pmo[p] = {};
                 return pmo[p];
               }
             }"
           >
-            <div class="section-title" style="margin-top: 1.5rem;">Chat model override for this profile</div>
+            <div class="section-title" style="margin-top: 1.5rem;">Chat model override per profile</div>
             <div class="section-description">
-              Override the chat model used when this agent profile is active. Leave blank to use the global chat model settings.
+              Override the chat model used when a specific agent profile is active. Leave blank to use the global chat model settings.
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <div class="field-title">Profile</div>
+                <div class="field-description">Select the agent profile to configure.</div>
+              </div>
+              <div class="field-control">
+                <select x-model="selectedProfile">
+                  <template x-for="option in $store.settings.additional?.agent_subdirs" :key="option.value">
+                    <option :value="option.value" x-text="option.label"></option>
+                  </template>
+                </select>
+              </div>
             </div>
 
             <div class="field">
@@ -95,7 +109,7 @@
                 <div class="field-title"></div>
               </div>
               <div class="field-control">
-                <button @click="$store.settings.saveProfileModelOverrides(profile)">
+                <button @click="$store.settings.saveProfileModelOverrides(selectedProfile)">
                   Save profile model
                 </button>
               </div>
