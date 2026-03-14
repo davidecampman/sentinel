@@ -153,6 +153,27 @@ const model = {
     }
   },
 
+  async saveProfileModelOverrides(profile) {
+    if (!profile) {
+      toast("No profile selected", "warning");
+      return false;
+    }
+    const overrides = this.additional?.profile_model_overrides?.[profile] || {};
+    try {
+      const response = await API.callJsonApi("agent_profile_model_set", { profile, overrides });
+      if (response?.ok) {
+        toast(`Model overrides saved for profile '${profile}'`, "success");
+        return true;
+      } else {
+        throw new Error(response?.error || "Failed to save");
+      }
+    } catch (e) {
+      console.error("Failed to save profile model overrides:", e);
+      toast("Failed to save profile model: " + e.message, "error");
+      return false;
+    }
+  },
+
   async testWorkdirFileStructure() {
     if (!this.settings) return;
     try {
