@@ -58,9 +58,10 @@ source /opt/venv-a0/bin/activate
 pip install --no-cache-dir --upgrade pip
 
 # Install some packages in specific variants
+# torch 2.4.0 had CVE-2024-48063 and CVE-2025-32434 (RCE via torch.load); fixed in 2.6.0
 pip install --no-cache-dir \
-    torch==2.4.0 \
-    torchvision==0.19.0 \
+    torch==2.6.0 \
+    torchvision==0.21.0 \
     --index-url https://download.pytorch.org/whl/cpu
 
 echo "====================PYTHON UV ===================="
