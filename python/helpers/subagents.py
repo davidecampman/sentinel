@@ -1,5 +1,5 @@
 from python.helpers import files
-from typing import TypedDict, TYPE_CHECKING
+from typing import TypedDict, TYPE_CHECKING, Any
 from pydantic import BaseModel, model_validator
 import json
 from typing import Literal
@@ -24,6 +24,7 @@ class SubAgentListItem(BaseModel):
     path: str = ""
     origin: list[Origin] = []
     enabled: bool = True
+    model_overrides: dict[str, Any] = {}
 
     @model_validator(mode="after")
     def post_validator(self):
@@ -138,6 +139,15 @@ def save_agent_data(name: str, subagent: SubAgent) -> None:
     }
     files.write_file(f"{agent_dir}/agent.json", json.dumps(agent_json, indent=2))
 
+    # write model_overrides to settings.json (or remove it if empty)
+    settings_path = f"{agent_dir}/settings.json"
+    if subagent.model_overrides:
+        files.write_file(settings_path, json.dumps(subagent.model_overrides, indent=2))
+    else:
+        abs_settings_path = files.get_abs_path(settings_path)
+        if os.path.exists(abs_settings_path):
+            os.remove(abs_settings_path)
+
     # replace prompts in custom directory
     prompts_dir = f"{agent_dir}/prompts"
     # clear existing custom prompts directory (if any)
@@ -185,6 +195,18 @@ def _load_agent_data_from_dir(dir: str, name: str, origin: Origin) -> SubAgent |
         prompts = {}
 
     subagent.prompts = prompts or {}
+
+    # load model overrides from settings.json if present
+    settings_path = files.get_abs_path(dir, name, "settings.json")
+    try:
+        from python.helpers import dirty_json
+        settings_content = files.read_file(settings_path)
+        model_overrides = dirty_json.try_parse(settings_content)
+        if isinstance(model_overrides, dict):
+            subagent.model_overrides = model_overrides
+    except Exception:
+        pass
+
     return subagent
 
 
@@ -198,6 +220,10 @@ def _merge_agents(base: SubAgent | None, override: SubAgent | None) -> SubAgent 
     merged_prompts.update(base.prompts or {})
     merged_prompts.update(override.prompts or {})
 
+    merged_model_overrides: dict[str, Any] = {}
+    merged_model_overrides.update(base.model_overrides or {})
+    merged_model_overrides.update(override.model_overrides or {})
+
     return SubAgent(
         name=override.name,
         title=override.title,
@@ -205,6 +231,7 @@ def _merge_agents(base: SubAgent | None, override: SubAgent | None) -> SubAgent 
         context=override.context,
         origin=_merge_origins(base.origin, override.origin),
         prompts=merged_prompts,
+        model_overrides=merged_model_overrides,
     )
 
 
