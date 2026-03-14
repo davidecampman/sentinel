@@ -212,6 +212,7 @@ class SettingsOutputAdditional(TypedDict):
     stt_models: list[FieldOption]
     is_dockerized: bool
     runtime_settings: dict[str, Any]
+    profile_model_overrides: dict[str, dict[str, Any]]
 
 
 class SettingsOutput(TypedDict):
@@ -243,6 +244,21 @@ def _ensure_option_present(options: list[OptionT] | None, current_value: str | N
     return opts
 
 def convert_out(settings: Settings) -> SettingsOutput:
+    from python.helpers import subagents as _subagents
+
+    agent_subdirs = [{"value": subdir, "label": subdir}
+        for subdir in files.get_subdirectories("agents")
+        if subdir != "_example"]
+
+    profile_model_overrides: dict[str, dict[str, Any]] = {}
+    for subdir_opt in agent_subdirs:
+        pname = subdir_opt["value"]
+        try:
+            agent_data = _subagents.load_agent_data(pname)
+            profile_model_overrides[pname] = agent_data.model_overrides or {}
+        except Exception:
+            profile_model_overrides[pname] = {}
+
     out = SettingsOutput(
         settings = settings.copy(),
         additional = SettingsOutputAdditional(
@@ -250,9 +266,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             embedding_providers=get_providers("embedding"),
             shell_interfaces=[{"value": "local", "label": "Local Python TTY"}, {"value": "ssh", "label": "SSH"}],
             is_dockerized=runtime.is_dockerized(),
-            agent_subdirs=[{"value": subdir, "label": subdir}
-                for subdir in files.get_subdirectories("agents")
-                if subdir != "_example"],
+            agent_subdirs=agent_subdirs,
             knowledge_subdirs=[{"value": subdir, "label": subdir}
                 for subdir in files.get_subdirectories("knowledge", exclude="default")],
             stt_models=[
@@ -264,6 +278,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
                 {"value": "turbo", "label": "Turbo (Multilingual)"},
             ],
             runtime_settings={},
+            profile_model_overrides=profile_model_overrides,
         ),
     )
 

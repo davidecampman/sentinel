@@ -161,6 +161,19 @@ def save_agent_data(name: str, subagent: SubAgent) -> None:
         files.write_file(f"{prompts_dir}/{safe_name}", content)
 
 
+def save_agent_model_overrides(name: str, overrides: dict) -> None:
+    """Save model overrides for an agent profile without touching agent.json or prompts."""
+    agent_dir = f"{USER_AGENTS_DIR}/{name}"
+    settings_path = f"{agent_dir}/settings.json"
+    abs_settings_path = files.get_abs_path(settings_path)
+
+    if overrides:
+        files.write_file(settings_path, json.dumps(overrides, indent=2))
+    else:
+        if os.path.exists(abs_settings_path):
+            os.remove(abs_settings_path)
+
+
 def delete_agent_data(name: str) -> None:
     files.delete_dir(f"{USER_AGENTS_DIR}/{name}")
 
