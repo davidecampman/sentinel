@@ -19,8 +19,8 @@ echo "====================PYTHON 3.13 VENV===================="
 python3.13 -m venv /opt/venv
 source /opt/venv/bin/activate
 
-# upgrade pip and install static packages
-pip install --no-cache-dir --upgrade pip pipx ipython requests
+# upgrade pip and install static packages; CVE-2025-8869 affects pip 24.0, fixed in 25.0+
+pip install --no-cache-dir "pip>=25.0" pipx ipython requests
 
 echo "====================PYTHON PYVENV===================="
 
@@ -54,8 +54,8 @@ pyenv install 3.12.4
 /opt/pyenv/versions/3.12.4/bin/python -m venv /opt/venv-a0
 source /opt/venv-a0/bin/activate
 
-# upgrade pip and install static packages
-pip install --no-cache-dir --upgrade pip
+# upgrade pip; CVE-2025-8869 affects pip 24.0, fixed in 25.0+
+pip install --no-cache-dir "pip>=25.0"
 
 # Install some packages in specific variants
 # torch 2.4.0 had CVE-2024-48063 and CVE-2025-32434 (RCE via torch.load); fixed in 2.6.0

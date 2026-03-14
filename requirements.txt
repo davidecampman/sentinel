@@ -23,7 +23,7 @@ mcp==1.26.0
 newspaper3k==0.2.8
 paramiko==3.5.0
 playwright==1.52.0
-pypdf==6.8.0
+pypdf>=6.9.0
 python-dotenv==1.1.0
 pytz==2024.2
 sentence-transformers==3.0.1
@@ -55,3 +55,7 @@ wsproto>=1.2.0
 Pillow>=12.1.0
 # Security: CVE-2025-47273 in setuptools <78.1.1 (directory traversal); fixed in 78.1.1
 setuptools>=78.1.1
+# Security: CVE-2025-68146, CVE-2026-22701 in filelock 3.20.0
+filelock>=3.21.0
+# Security: CVE-2026-27199 in werkzeug 3.1.5
+werkzeug>=3.2.0

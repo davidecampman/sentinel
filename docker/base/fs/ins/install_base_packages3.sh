@@ -19,6 +19,11 @@ echo "====================BASE PACKAGES3 NPM===================="
 # http-cache-semantics (CVE-2022-25881), serialize-javascript (GHSA-5c6j-r48x-rmvq)
 npm install -g npm@latest
 
+# Update all globally installed packages to pick up patched versions of transitive deps:
+# word-wrap (CVE-2023-26115), @babel/runtime-corejs3 (CVE-2025-27789),
+# ajv (CVE-2025-69873), js-yaml (CVE-2025-64718), lodash (CVE-2025-13465)
+npm update -g
+
 # we shall not install npx separately, it's discontinued and some versions are broken
 # npm i -g npx
 echo "====================BASE PACKAGES3 END===================="
