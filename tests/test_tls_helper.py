@@ -133,12 +133,19 @@ class TestGetPlaywrightArgs:
 # ---------------------------------------------------------------------------
 
 class TestApplyEnvVars:
-    def test_sets_pythonhttpsverify_when_disabled(self):
+    def test_env_vars_when_verify_disabled(self):
         from python.helpers import tls
+        # Pre-set PYTHONHTTPSVERIFY to ensure it gets removed (it's a no-op on
+        # Python 3.12+ so we no longer set it).
+        os.environ["PYTHONHTTPSVERIFY"] = "0"
         with patch("python.helpers.settings.get_settings", return_value=_settings(False)):
             tls.apply_env_vars()
-            assert os.environ.get("PYTHONHTTPSVERIFY") == "0"
+            # PYTHONHTTPSVERIFY removed: deprecated/removed in Python 3.12+
+            assert "PYTHONHTTPSVERIFY" not in os.environ
             assert "REQUESTS_CA_BUNDLE" not in os.environ
+            # CURL_CA_BUNDLE must be /dev/null, not empty string (empty string
+            # causes curl to fail with HTTP 000)
+            assert os.environ.get("CURL_CA_BUNDLE") == "/dev/null"
 
     def test_sets_bundle_env_vars(self, tmp_path):
         from python.helpers import tls
