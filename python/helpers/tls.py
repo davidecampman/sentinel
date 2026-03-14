@@ -146,8 +146,13 @@ def apply_env_vars() -> None:
     verify = get_verify()
     if verify is False:
         # Signal libraries to skip verification.
-        os.environ["PYTHONHTTPSVERIFY"] = "0"
-        os.environ["CURL_CA_BUNDLE"] = ""  # empty = disable
+        # PYTHONHTTPSVERIFY=0 was deprecated and removed in Python 3.12 — unset it
+        # so it doesn't cause confusion on Python 3.12+.
+        os.environ.pop("PYTHONHTTPSVERIFY", None)
+        # Use /dev/null instead of empty string: empty string causes curl to fail
+        # immediately with HTTP 000 (can't open file ""), while /dev/null provides
+        # an empty-but-valid path that prevents that crash.
+        os.environ["CURL_CA_BUNDLE"] = "/dev/null"
         # Remove any previously set bundle paths so they don't override.
         os.environ.pop("REQUESTS_CA_BUNDLE", None)
         os.environ.pop("SSL_CERT_FILE", None)
@@ -191,8 +196,11 @@ def apply_env_vars() -> None:
         os.makedirs(os.path.dirname(env_path), exist_ok=True)
         if verify is False:
             lines = [
-                "export PYTHONHTTPSVERIFY=0",
-                "export CURL_CA_BUNDLE=",
+                # PYTHONHTTPSVERIFY=0 is a no-op on Python 3.12+ — unset it.
+                "unset PYTHONHTTPSVERIFY",
+                # Empty string crashes curl (HTTP 000); /dev/null is a valid path
+                # that prevents the crash.
+                "export CURL_CA_BUNDLE=/dev/null",
                 "unset REQUESTS_CA_BUNDLE",
                 "unset SSL_CERT_FILE",
                 "unset NODE_EXTRA_CA_CERTS",
