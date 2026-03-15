@@ -1,8 +1,8 @@
 # Use the pre-built base image for A0
 # FROM agent-zero-base:local
-# FROM agent0ai/agent-zero-base:testing
-FROM davidecampman/sentinel-base:latest
-
+# FROM davidecampman/sentinel-base:testing
+# FROM davidecampman/sentinel-base:latest
+FROM decdevelopment/sentinel-base:latest
 # Check if the argument is provided, else throw an error
 ARG BRANCH
 RUN if [ -z "$BRANCH" ]; then echo "ERROR: BRANCH is not set!" >&2; exit 1; fi

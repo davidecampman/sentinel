@@ -1,7 +1,10 @@
 # Use the pre-built base image for A0
 # FROM agent-zero-base:local
-FROM davidecampman/sentinel-base:latest
-
+FROM decdevelopment/sentinel-base:latest
+# 1. Force a security update immediately
+USER root
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 # Set BRANCH to "local" if not provided
 ARG BRANCH=local
 ENV BRANCH=$BRANCH
