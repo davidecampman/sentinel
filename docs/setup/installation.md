@@ -235,15 +235,12 @@ Agent Zero provides a comprehensive settings interface to customize various aspe
 
 ### Agent Configuration
 
-- **Agent Profile:** Select the agent profile (e.g., `agent0`, `hacker`, `researcher`). Profiles can override prompts, tools, and extensions.
+- **Agent Profile:** Select the agent profile (e.g., `agent0`, `researcher`). Profiles can override prompts, tools, and extensions.
 - **Memory Subdirectory:** Select the subdirectory for agent memory storage, allowing separation between different instances.
 - **Knowledge Subdirectory:** Specify the location of custom knowledge files to enhance the agent's understanding.
 
 > [!NOTE]
 > Since v0.9.7, custom prompts belong in `/a0/agents/<agent_name>/prompts/` rather than a shared `/prompts` folder. See the [Extensions guide](../developer/extensions.md#prompts) for details.
-
-> [!NOTE]
-> The Hacker profile is included in the main image. After launch, choose the **hacker** agent profile in Settings if you want the security-focused prompts and tooling. The "hacker" branch is deprecated.
 
 ![settings](../res/setup/settings/1-agentConfig.png)
 
