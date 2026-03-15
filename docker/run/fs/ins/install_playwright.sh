@@ -21,5 +21,10 @@ playwright install chromium --only-shell
 # /etc/pki/nssdb  – system-wide DB checked by Chromium
 # /root/.pki/nssdb – per-user DB for the root account (container default user)
 mkdir -p /etc/pki/nssdb /root/.pki/nssdb
-certutil -N -f /dev/null -d sql:/etc/pki/nssdb
-certutil -N -f /dev/null -d sql:/root/.pki/nssdb
+# certutil -f requires a non-empty file; a file containing only a newline
+# is treated as an empty (blank) password by NSS.
+NSS_PASS=$(mktemp)
+echo > "$NSS_PASS"
+certutil -N -f "$NSS_PASS" -d sql:/etc/pki/nssdb
+certutil -N -f "$NSS_PASS" -d sql:/root/.pki/nssdb
+rm -f "$NSS_PASS"
