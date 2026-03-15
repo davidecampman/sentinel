@@ -14,9 +14,12 @@ Settings controlled via the Agent Zero UI (Settings → Network → TLS):
 
 from __future__ import annotations
 
+import logging
 import os
 import ssl
 from typing import TYPE_CHECKING, Union
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     import aiohttp
@@ -180,8 +183,8 @@ def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
                 os.remove(_SYSTEM_CA_CERT)
 
         subprocess.run(["update-ca-certificates"], capture_output=True, check=False)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Could not update OpenSSL system CA store (non-Ubuntu or insufficient permissions): %s", e)
 
     # ── 2. NSS store (Chromium / Playwright) ────────────────────────────────
     for nss_db in _NSS_DBS:
@@ -207,8 +210,8 @@ def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
                     capture_output=True,
                     check=False,
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Could not update NSS CA store at %s (certutil not available or insufficient permissions): %s", nss_db, e)
 
 
 def apply_env_vars() -> None:
@@ -320,5 +323,5 @@ def apply_env_vars() -> None:
         with open(env_path, "w") as _f:
             _f.write("\n".join(lines) + "\n")
         os.chmod(env_path, 0o644)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Could not write TLS environment file: %s", e)
