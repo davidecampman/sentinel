@@ -21,5 +21,5 @@ playwright install chromium --only-shell
 # /etc/pki/nssdb  – system-wide DB checked by Chromium
 # /root/.pki/nssdb – per-user DB for the root account (container default user)
 mkdir -p /etc/pki/nssdb /root/.pki/nssdb
-certutil -N --empty-password -d sql:/etc/pki/nssdb
-certutil -N --empty-password -d sql:/root/.pki/nssdb
+certutil -N -f /dev/null -d sql:/etc/pki/nssdb
+certutil -N -f /dev/null -d sql:/root/.pki/nssdb
