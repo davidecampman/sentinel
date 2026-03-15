@@ -138,6 +138,7 @@ class TestApplyEnvVars:
         # Pre-set PYTHONHTTPSVERIFY to ensure it gets removed (it's a no-op on
         # Python 3.12+ so we no longer set it).
         os.environ["PYTHONHTTPSVERIFY"] = "0"
+        os.environ["AWS_CA_BUNDLE"] = "/some/old/bundle.pem"
         with patch("python.helpers.settings.get_settings", return_value=_settings(False)):
             tls.apply_env_vars()
             # PYTHONHTTPSVERIFY removed: deprecated/removed in Python 3.12+
@@ -146,6 +147,9 @@ class TestApplyEnvVars:
             # CURL_CA_BUNDLE must be /dev/null, not empty string (empty string
             # causes curl to fail with HTTP 000)
             assert os.environ.get("CURL_CA_BUNDLE") == "/dev/null"
+            # AWS_CA_BUNDLE must be cleared so botocore/Bedrock doesn't try to
+            # verify certs when the user has disabled verification.
+            assert "AWS_CA_BUNDLE" not in os.environ
 
     def test_sets_bundle_env_vars(self, tmp_path):
         from python.helpers import tls
@@ -156,15 +160,20 @@ class TestApplyEnvVars:
             assert os.environ.get("SSL_CERT_FILE") == bundle
             assert os.environ.get("CURL_CA_BUNDLE") == bundle
             assert os.environ.get("NODE_EXTRA_CA_CERTS") == bundle
+            # AWS_CA_BUNDLE is read by botocore (boto3) for Bedrock connections —
+            # REQUESTS_CA_BUNDLE is NOT used by botocore.
+            assert os.environ.get("AWS_CA_BUNDLE") == bundle
 
     def test_clears_overrides_when_default(self):
         from python.helpers import tls
         # pre-set some env vars
         os.environ["REQUESTS_CA_BUNDLE"] = "/old/path"
+        os.environ["AWS_CA_BUNDLE"] = "/old/path"
         os.environ["PYTHONHTTPSVERIFY"] = "0"
         with patch("python.helpers.settings.get_settings", return_value=_settings(True, "")):
             tls.apply_env_vars()
             assert "REQUESTS_CA_BUNDLE" not in os.environ
+            assert "AWS_CA_BUNDLE" not in os.environ
             assert "PYTHONHTTPSVERIFY" not in os.environ
 
 

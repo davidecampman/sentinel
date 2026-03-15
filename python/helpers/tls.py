@@ -157,12 +157,19 @@ def apply_env_vars() -> None:
         os.environ.pop("REQUESTS_CA_BUNDLE", None)
         os.environ.pop("SSL_CERT_FILE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
+        # AWS_CA_BUNDLE is read by botocore (boto3) for AWS service connections
+        # including Bedrock.  Clear it so any pre-existing value doesn't force
+        # certificate verification when the user has disabled it.
+        os.environ.pop("AWS_CA_BUNDLE", None)
     elif isinstance(verify, str):
         # Custom CA bundle path.
         os.environ["REQUESTS_CA_BUNDLE"] = verify
         os.environ["SSL_CERT_FILE"] = verify
         os.environ["CURL_CA_BUNDLE"] = verify
         os.environ["NODE_EXTRA_CA_CERTS"] = verify
+        # botocore (boto3) reads AWS_CA_BUNDLE for AWS service TLS verification
+        # (e.g. Bedrock).  REQUESTS_CA_BUNDLE is NOT used by botocore.
+        os.environ["AWS_CA_BUNDLE"] = verify
         os.environ.pop("PYTHONHTTPSVERIFY", None)
     else:
         # Restore defaults – remove overrides.
@@ -171,6 +178,7 @@ def apply_env_vars() -> None:
         os.environ.pop("SSL_CERT_FILE", None)
         os.environ.pop("CURL_CA_BUNDLE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
+        os.environ.pop("AWS_CA_BUNDLE", None)
 
     # Configure LiteLLM global SSL properties so all subsequent litellm calls
     # inherit the correct verification mode / CA bundle without needing per-call
@@ -204,6 +212,7 @@ def apply_env_vars() -> None:
                 "unset REQUESTS_CA_BUNDLE",
                 "unset SSL_CERT_FILE",
                 "unset NODE_EXTRA_CA_CERTS",
+                "unset AWS_CA_BUNDLE",
             ]
         elif isinstance(verify, str):
             lines = [
@@ -211,6 +220,7 @@ def apply_env_vars() -> None:
                 f"export SSL_CERT_FILE={verify}",
                 f"export CURL_CA_BUNDLE={verify}",
                 f"export NODE_EXTRA_CA_CERTS={verify}",
+                f"export AWS_CA_BUNDLE={verify}",
                 "unset PYTHONHTTPSVERIFY",
             ]
         else:
@@ -220,6 +230,7 @@ def apply_env_vars() -> None:
                 "unset SSL_CERT_FILE",
                 "unset CURL_CA_BUNDLE",
                 "unset NODE_EXTRA_CA_CERTS",
+                "unset AWS_CA_BUNDLE",
             ]
         with open(env_path, "w") as _f:
             _f.write("\n".join(lines) + "\n")
