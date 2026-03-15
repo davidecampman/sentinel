@@ -92,8 +92,9 @@ class AgentContext:
         self.task: DeferredTask | None = None
         self.created_at = created_at or datetime.now(timezone.utc)
         self.type = type
-        AgentContext._counter += 1
-        self.no = AgentContext._counter
+        with AgentContext._contexts_lock:
+            AgentContext._counter += 1
+            self.no = AgentContext._counter
         self.last_message = last_message or datetime.now(timezone.utc)
 
         # initialize agent at last (context is complete now)

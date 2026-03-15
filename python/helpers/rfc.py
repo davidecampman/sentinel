@@ -58,6 +58,12 @@ def _assert_module_allowed(module: str) -> None:
             f"RFC module '{module}' is not in the allowed prefix list. "
             "Only internal agent-zero modules may be called via RFC."
         )
+    # Every dotted component must be a valid Python identifier to prevent
+    # crafted paths that could bypass import restrictions or cause injection.
+    if not all(part.isidentifier() for part in module.split(".")):
+        raise Exception(
+            f"RFC module '{module}' contains invalid identifier components."
+        )
 
 
 async def handle_rfc(rfc_call: RFCCall, password: str):

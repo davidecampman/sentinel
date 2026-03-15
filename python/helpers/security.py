@@ -34,16 +34,18 @@ def safe_filename(filename: str) -> Optional[str]:
     if stem.upper() in WINDOWS_RESERVED:
         filename = f"{stem}-{suffixes}"
 
-    # Truncate if too long
-    if len(filename) > FILENAME_MAX_LENGTH:
-        max_stem_len = FILENAME_MAX_LENGTH - len(suffixes)
-        if max_stem_len > 0:
-            # Truncate filename
-            stem = stem[:max_stem_len]
+    # Truncate if too long — enforce byte limit (Linux kernel: 255 bytes per filename component)
+    if len(filename.encode("utf-8")) > FILENAME_MAX_LENGTH:
+        suffix_bytes = len(suffixes.encode("utf-8"))
+        max_stem_bytes = FILENAME_MAX_LENGTH - suffix_bytes
+        if max_stem_bytes > 0:
+            # Encode stem, truncate to byte budget, then decode safely (avoid splitting multi-byte chars)
+            stem_bytes = stem.encode("utf-8")[:max_stem_bytes]
+            stem = stem_bytes.decode("utf-8", errors="ignore")
             filename = stem + suffixes
         else:
-            # Extension is too long, truncate everything
-            filename = filename[:FILENAME_MAX_LENGTH]
+            # Extension alone exceeds limit — truncate the whole thing by bytes
+            filename = filename.encode("utf-8")[:FILENAME_MAX_LENGTH].decode("utf-8", errors="ignore")
     if not filename:
         return None
     return filename

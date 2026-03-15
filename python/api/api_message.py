@@ -5,7 +5,6 @@ from agent import AgentContext, UserMessage, AgentContextType
 from python.helpers.api import ApiHandler, Request, Response
 from python.helpers import files, projects
 from python.helpers.print_style import PrintStyle
-from python.helpers.projects import activate_project
 from python.helpers.security import safe_filename
 from initialize import initialize_agent
 import threading
@@ -97,23 +96,16 @@ class ApiMessage(ApiHandler):
             # Activate project if provided
             if project_name:
                 try:
-                    activate_project(context_id, project_name)
-                except Exception as e:
-                    # Handle project or context errors more gracefully
-                    error_msg = str(e)
-                    PrintStyle.error(f"Failed to activate project '{project_name}' for context '{context_id}': {error_msg}")
-                    return Response(
-                        f'{{"error": "Failed to activate project \\"{project_name}\\""}}',
-                        status=500,
-                        mimetype="application/json",
-                    )
-
-            # Activate project if provided
-            if project_name:
-                try:
                     projects.activate_project(context_id, project_name)
                 except Exception as e:
-                    return Response(f'{{"error": "Failed to activate project: {str(e)}"}}', status=400, mimetype="application/json")
+                    error_msg = str(e)
+                    PrintStyle.error(f"Failed to activate project '{project_name}' for context '{context_id}': {error_msg}")
+                    AgentContext.remove(context_id)
+                    return Response(
+                        f'{{"error": "Failed to activate project \\"{project_name}\\": {error_msg}"}}',
+                        status=400,
+                        mimetype="application/json",
+                    )
 
         # Update chat lifetime
         with self._cleanup_lock:
