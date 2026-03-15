@@ -11,5 +11,15 @@ uv pip install playwright
 export PLAYWRIGHT_BROWSERS_PATH=/a0/tmp/playwright
 
 # install chromium with dependencies
-apt-get install -y fonts-unifont libnss3 libnspr4 libatk1.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libatk-bridge2.0-0 libcups2
+# libnss3-tools provides certutil, needed to inject custom CA certs into the
+# NSS trust store that Chromium reads on Linux.
+apt-get install -y fonts-unifont libnss3 libnss3-tools libnspr4 libatk1.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libatk-bridge2.0-0 libcups2
 playwright install chromium --only-shell
+
+# Initialise NSS certificate databases so certutil can add/remove certs at
+# runtime without needing to re-run certutil -N interactively.
+# /etc/pki/nssdb  – system-wide DB checked by Chromium
+# /root/.pki/nssdb – per-user DB for the root account (container default user)
+mkdir -p /etc/pki/nssdb /root/.pki/nssdb
+certutil -N --empty-password -d sql:/etc/pki/nssdb
+certutil -N --empty-password -d sql:/root/.pki/nssdb

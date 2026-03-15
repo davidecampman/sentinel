@@ -25,6 +25,11 @@ if TYPE_CHECKING:
 # update-ca-certificates scans /usr/local/share/ca-certificates/ for *.crt files.
 _SYSTEM_CA_CERT = "/usr/local/share/ca-certificates/sentinel-ca.crt"
 
+# NSS databases used by Chromium on Linux (system-wide and root-user).
+# Initialised during image build by install_playwright.sh.
+_NSS_CERT_NICKNAME = "sentinel-ca"
+_NSS_DBS = ["sql:/etc/pki/nssdb", "sql:/root/.pki/nssdb"]
+
 
 def get_verify() -> Union[bool, str]:
     """
@@ -140,16 +145,23 @@ def get_litellm_kwargs() -> dict:
 
 def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
     """
-    Install or remove the custom CA bundle from Ubuntu's system trust store
-    and rebuild the consolidated CA bundle via update-ca-certificates.
+    Install or remove the custom CA bundle from every system trust store that
+    matters on Ubuntu, then rebuild/refresh each one:
 
-    Installing the cert at the OS level means every SSL context created by
-    ssl.create_default_context() — including those inside aiohttp, httpx,
-    botocore, and any other library — automatically trusts the corporate CA
-    without needing per-library env vars or per-call parameters.
+    1. OpenSSL store (/usr/local/share/ca-certificates/ + update-ca-certificates)
+       → picked up by ssl.create_default_context(), so aiohttp, httpx, botocore/
+         Bedrock, requests, and every other Python HTTP library gets the cert
+         automatically without any per-library env-var wiring.
 
-    This is a best-effort operation: it silently does nothing on non-Ubuntu
-    hosts or when the process lacks sufficient privilege.
+    2. NSS store (/etc/pki/nssdb and /root/.pki/nssdb via certutil)
+       → picked up by Chromium/Playwright, which uses libnss3 on Linux instead
+         of the OpenSSL store.
+
+    Both stores are managed together so a single "upload cert + restart"
+    workflow in the UI covers all TLS-speaking components in the container.
+
+    This is a best-effort operation: it silently skips any store that is
+    missing or inaccessible (e.g. non-Ubuntu dev environments).
 
     Args:
         bundle_path: Absolute path to a PEM CA bundle to install, or None to
@@ -158,22 +170,45 @@ def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
     import shutil
     import subprocess
 
+    # ── 1. OpenSSL / system trust store ─────────────────────────────────────
     try:
         if bundle_path:
             os.makedirs(os.path.dirname(_SYSTEM_CA_CERT), exist_ok=True)
             shutil.copy2(bundle_path, _SYSTEM_CA_CERT)
         else:
-            if not os.path.exists(_SYSTEM_CA_CERT):
-                return  # Nothing installed, nothing to do.
-            os.remove(_SYSTEM_CA_CERT)
+            if os.path.exists(_SYSTEM_CA_CERT):
+                os.remove(_SYSTEM_CA_CERT)
 
-        subprocess.run(
-            ["update-ca-certificates"],
-            capture_output=True,
-            check=False,
-        )
+        subprocess.run(["update-ca-certificates"], capture_output=True, check=False)
     except Exception:
-        pass  # Non-fatal — env vars remain as fallback for most libraries.
+        pass
+
+    # ── 2. NSS store (Chromium / Playwright) ────────────────────────────────
+    for nss_db in _NSS_DBS:
+        try:
+            db_dir = nss_db[len("sql:"):]
+            if not os.path.isdir(db_dir):
+                continue
+            # Always delete first so re-installs don't accumulate duplicates.
+            subprocess.run(
+                ["certutil", "-D", "-d", nss_db, "-n", _NSS_CERT_NICKNAME],
+                capture_output=True,
+                check=False,
+            )
+            if bundle_path:
+                subprocess.run(
+                    [
+                        "certutil", "-A",
+                        "-d", nss_db,
+                        "-n", _NSS_CERT_NICKNAME,
+                        "-t", "CT,,",
+                        "-i", bundle_path,
+                    ],
+                    capture_output=True,
+                    check=False,
+                )
+        except Exception:
+            pass
 
 
 def apply_env_vars() -> None:
