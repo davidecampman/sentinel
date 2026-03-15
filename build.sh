@@ -1,19 +1,59 @@
 #!/usr/bin/env bash
-# build.sh — Build and push Sentinel images to Docker Hub
+# build.sh — Build and push Sentinel Docker images to Docker Hub
 #
-# Usage:
-#   ./build.sh --branch main                  # builds base + run, tags :latest + :YYYYMMDD_HH_MM
-#   ./build.sh --branch develop               # builds base + run, tags :develop + :YYYYMMDD_HH_MM
-#   ./build.sh --branch main --skip-base      # skip base rebuild, only rebuild run image
-#   ./build.sh --branch main --no-cache       # forces full rebuild
-#   ./build.sh --branch main --builder cloud-<org>-<name>  # use Docker Build Cloud
+# Builds two images in sequence:
+#   1. sentinel-base  — Ubuntu base with system packages, Python, SearXNG
+#   2. sentinel       — Application layer on top of base
 #
-# Branch -> image tag mapping:
+# USAGE
+#   ./build.sh --branch <branch> [OPTIONS]
+#
+# REQUIRED
+#   --branch <name>       Branch to build. Controls the image tag (see tag mapping below).
+#
+# OPTIONS
+#   --skip-base           Skip rebuilding the base image. Use when only application
+#                         code has changed and the base is already up to date.
+#   --no-cache            Disable Docker layer cache. Forces a full rebuild of all layers.
+#   --builder <name>      Use a specific buildx builder (e.g. a Docker Build Cloud builder).
+#                         Can also be set via the DOCKER_BUILDER environment variable.
+#
+# BRANCH -> IMAGE TAG MAPPING
 #   main    -> decdevelopment/sentinel:latest
 #   develop -> decdevelopment/sentinel:develop
 #   <other> -> decdevelopment/sentinel:<branch>
 #
-# Pull and run after pushing:
+#   All builds also produce a date-stamped tag: decdevelopment/sentinel:YYYYMMDD_HH_MM
+#
+# ENVIRONMENT VARIABLES
+#   DOCKER_BUILDER        Default builder name, overridden by --builder if both are set.
+#
+# EXAMPLES
+#   # Standard build from the main branch (tags :latest)
+#   ./build.sh --branch main
+#
+#   # Build the develop branch (tags :develop)
+#   ./build.sh --branch develop
+#
+#   # Build a feature branch (tags :my-feature)
+#   ./build.sh --branch my-feature
+#
+#   # Skip base rebuild — faster when only app code changed
+#   ./build.sh --branch develop --skip-base
+#
+#   # Force full rebuild with no layer cache
+#   ./build.sh --branch main --no-cache
+#
+#   # Use Docker Build Cloud via flag
+#   ./build.sh --branch main --builder cloud-decdevelopment-default
+#
+#   # Use Docker Build Cloud via environment variable
+#   DOCKER_BUILDER=cloud-decdevelopment-default ./build.sh --branch main
+#
+#   # Combine: cloud builder, skip base, no cache
+#   ./build.sh --branch develop --skip-base --no-cache --builder cloud-decdevelopment-default
+#
+# AFTER PUSHING
 #   AGENT_ZERO_IMAGE=decdevelopment/sentinel:latest ./run.sh
 
 set -euo pipefail
