@@ -74,6 +74,8 @@
 </head>
 
 <body class="dark-mode device-pointer" x-data>
+    <!-- Dynamic particle-constellation background canvas -->
+    <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block;"></canvas>
     <div class="container">
         <!-- Sidebar Overlay -->
         <div id="sidebar-overlay" x-data>
@@ -123,6 +125,9 @@
 
     <!-- Drag and Drop Overlay Component -->
     <x-component path="chat/attachments/dragDropOverlay.html"></x-component>
+
+    <!-- Dynamic particle-constellation background -->
+    <script src="js/background-canvas.js"></script>
 
     <!-- Register Service Worker for offline support and caching -->
     <script>
