@@ -1,18 +1,18 @@
 # local image with smart cache
-docker build -t agent-zero-base:local --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S)  .
+docker build -t decdevelopment/sentinel-base:local --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S)  .
 
 # local image without cache
-docker build -t agent-zero-base:local --no-cache  .
+docker build -t decdevelopment/sentinel-base:local --no-cache  .
 
 # dockerhub push:
 
 docker login
 
 # with cache
-docker buildx build -t davidecampman/sentinel-base:latest --platform linux/amd64,linux/arm64 --push --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) .
+docker buildx build -t decdevelopment/sentinel-base:latest --platform linux/amd64,linux/arm64 --push --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) .
 
 # without cache
-docker buildx build -t davidecampman/sentinel-base:latest --platform linux/amd64,linux/arm64 --push --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) --no-cache .
+docker buildx build -t decdevelopment/sentinel-base:latest --platform linux/amd64,linux/arm64 --push --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) --no-cache .
 
 # plain output
 --progress=plain
