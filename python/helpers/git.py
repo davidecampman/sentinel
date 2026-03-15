@@ -1,10 +1,13 @@
 from git import Repo
 from datetime import datetime
+import logging
 import os
 import subprocess
 import base64
 from urllib.parse import urlparse, urlunparse
 from python.helpers import files
+
+logger = logging.getLogger(__name__)
 
 
 def strip_auth_from_url(url: str) -> str:
@@ -49,7 +52,8 @@ def get_git_info():
             short_tag = "-".join(tag_split[:-1])
         else:
             short_tag = tag
-    except:
+    except Exception as e:
+        logger.debug("Could not determine git tag (no tags in repo or git describe failed): %s", e)
         tag = ""
 
     version = branch[0].upper() + " " + ( short_tag or commit_hash[:7] )
@@ -70,7 +74,8 @@ def get_version():
     try:
         git_info = get_git_info()
         return str(git_info.get("short_tag", "")).strip() or "unknown"
-    except Exception:
+    except Exception as e:
+        logger.debug("Could not determine version from git: %s", e)
         return "unknown"
 
 
@@ -114,8 +119,8 @@ def get_repo_status(repo_path: str) -> dict:
         try:
             if repo.remotes:
                 remote_url = strip_auth_from_url(repo.remotes.origin.url)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Could not read remote URL for repo at %s: %s", repo_path, e)
         
         # Current branch
         try:
@@ -146,8 +151,8 @@ def get_repo_status(repo_path: str) -> dict:
                 "author": str(commit.author),
                 "date": datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d %H:%M')
             }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Could not read last commit info for repo at %s: %s", repo_path, e)
         
         return {
             "is_git_repo": True,
