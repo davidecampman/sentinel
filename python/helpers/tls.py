@@ -143,6 +143,124 @@ def get_litellm_kwargs() -> dict:
     return {}
 
 
+def _patch_ssl_defaults(verify: Union[bool, str]) -> None:
+    """
+    Patch ssl._create_default_https_context so every new ssl context inherits
+    the configured TLS verification mode.
+
+    This is the most reliable way to make libraries that create their own ssl
+    contexts (httpx, aiohttp, botocore, etc.) respect our TLS settings, even
+    when they don't honour environment variables or per-call kwargs.
+
+    Called by apply_env_vars() after the standard env-var setup.
+    """
+    import ssl as _ssl_mod
+
+    if verify is False:
+        # Unverified context – disables certificate verification globally for
+        # all new ssl contexts created via ssl.create_default_context() or
+        # ssl._create_default_https_context().
+        _ssl_mod._create_default_https_context = _ssl_mod._create_unverified_context
+    else:
+        # Restore the standard default (system certs / certifi).  The CA-bundle
+        # case is already handled via SSL_CERT_FILE + _update_system_ca_store(),
+        # so ssl.create_default_context() will automatically load the bundle
+        # from the system trust store.
+        _ssl_mod._create_default_https_context = _ssl_mod.create_default_context
+
+
+def _patch_httpx_defaults(verify: Union[bool, str]) -> None:
+    """
+    Monkey-patch httpx.AsyncClient and httpx.Client so that every new client
+    uses our SSL verification setting by default.
+
+    LiteLLM (and the underlying OpenAI SDK) create httpx clients internally.
+    Setting litellm.ssl_verify is supposed to propagate the setting, but a
+    long-standing regression (BerriAI/litellm#9340) means the async client
+    path does not always honour it.  Patching the httpx constructors ensures
+    the correct ssl.SSLContext is used no matter how or when the client is
+    created.
+
+    Uses setdefault() so that any caller that passes an explicit verify=
+    argument still wins – we only supply the default.
+    """
+    try:
+        import httpx as _httpx  # type: ignore
+
+        # ── Store originals once on first call ──────────────────────────────
+        if not hasattr(_httpx.AsyncClient, "_sentinel_orig_init"):
+            _httpx.AsyncClient._sentinel_orig_init = _httpx.AsyncClient.__init__
+        if not hasattr(_httpx.Client, "_sentinel_orig_init"):
+            _httpx.Client._sentinel_orig_init = _httpx.Client.__init__
+
+        if verify is True:
+            # Restore original constructors (system/certifi default certs).
+            _httpx.AsyncClient.__init__ = _httpx.AsyncClient._sentinel_orig_init
+            _httpx.Client.__init__ = _httpx.Client._sentinel_orig_init
+        else:
+            # verify is False or a CA-bundle path string.
+            _verify = verify
+            _orig_async = _httpx.AsyncClient._sentinel_orig_init
+            _orig_sync = _httpx.Client._sentinel_orig_init
+
+            def _patched_async_init(self, *args, **kwargs):  # type: ignore[misc]
+                kwargs.setdefault("verify", _verify)
+                _orig_async(self, *args, **kwargs)
+
+            def _patched_sync_init(self, *args, **kwargs):  # type: ignore[misc]
+                kwargs.setdefault("verify", _verify)
+                _orig_sync(self, *args, **kwargs)
+
+            _httpx.AsyncClient.__init__ = _patched_async_init
+            _httpx.Client.__init__ = _patched_sync_init
+    except Exception:
+        pass
+
+
+def _clear_litellm_client_cache() -> None:
+    """
+    Clear LiteLLM's cached HTTP clients so they are recreated on the next call.
+
+    LiteLLM caches openai.AsyncOpenAI / openai.OpenAI instances that embed an
+    httpx client built at construction time.  After changing SSL settings we
+    must discard those stale clients; otherwise the new ssl._create_default_https_context
+    and httpx defaults only take effect for clients created *after* this call.
+
+    This is best-effort: attribute names differ across litellm versions.
+    """
+    try:
+        import litellm as _ll  # type: ignore
+
+        # Module-level client attributes seen across litellm v1.x versions.
+        for _attr in (
+            "_async_openai_client",
+            "_openai_client",
+            "client_session",
+            "aclient",
+            "client",
+        ):
+            if hasattr(_ll, _attr) and getattr(_ll, _attr) is not None:
+                try:
+                    setattr(_ll, _attr, None)
+                except Exception:
+                    pass
+
+        # Also clear any provider-level caches in litellm.utils if present.
+        try:
+            import litellm.utils as _ll_utils  # type: ignore
+
+            for _attr in ("_async_openai_client", "_openai_client"):
+                if hasattr(_ll_utils, _attr) and getattr(_ll_utils, _attr) is not None:
+                    try:
+                        setattr(_ll_utils, _attr, None)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+
 def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
     """
     Install or remove the custom CA bundle from every system trust store that
@@ -265,13 +383,24 @@ def apply_env_vars() -> None:
     # ssl.create_default_context() picks it up globally (aiohttp, botocore, …).
     _update_system_ca_store(verify if isinstance(verify, str) else None)
 
-    # Configure LiteLLM global SSL properties so all subsequent litellm calls
-    # inherit the correct verification mode / CA bundle without needing per-call
-    # kwargs.  Lazy import so tls.py has no hard dependency on litellm.
+    # ── Patch ssl module defaults ──────────────────────────────────────────
+    # Must run BEFORE configuring LiteLLM so that any clients it creates from
+    # this point forward inherit the correct ssl context factory.
+    _patch_ssl_defaults(verify)
+
+    # ── Patch httpx client constructors ───────────────────────────────────
+    # LiteLLM (via the OpenAI SDK) creates httpx.AsyncClient instances.  A
+    # regression (BerriAI/litellm#9340) means the async path ignores
+    # ssl_verify in some versions.  Patching the constructors here ensures
+    # every new httpx client, regardless of who creates it, inherits our
+    # verify setting.
+    _patch_httpx_defaults(verify)
+
+    # ── Configure LiteLLM global SSL properties ───────────────────────────
+    # ssl_verify accepts bool OR a CA bundle path string.
+    # ssl_certificate is for mutual-TLS client certs — never set it here.
     try:
         import litellm as _litellm  # type: ignore
-        # ssl_verify accepts bool OR a CA bundle path string.
-        # ssl_certificate is for mutual-TLS client certs — never set it here.
         if verify is False:
             _litellm.ssl_verify = False
         elif isinstance(verify, str):
@@ -280,6 +409,12 @@ def apply_env_vars() -> None:
             _litellm.ssl_verify = True
     except ImportError:
         pass
+
+    # ── Discard stale LiteLLM client cache ────────────────────────────────
+    # After updating ssl defaults and litellm.ssl_verify, evict any cached
+    # httpx clients so the next LiteLLM call creates fresh ones that pick up
+    # the new SSL configuration.
+    _clear_litellm_client_cache()
 
     # Write a shell-sourceable env file so SearXNG (a separate supervisord
     # process in its own virtualenv) can pick up the same TLS settings.
