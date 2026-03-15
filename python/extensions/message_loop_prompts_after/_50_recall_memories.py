@@ -91,6 +91,12 @@ class RecallMemories(Extension):
                 )
                 query = query.strip()
                 log_item.update(query=query) # no need for streaming here
+            except asyncio.CancelledError as e:
+                err = errors.format_error(e)
+                self.agent.context.log.log(
+                    type="warning", heading="Recall memories extension error (cancelled):", content=err
+                )
+                query = ""
             except Exception as e:
                 err = errors.format_error(e)
                 self.agent.context.log.log(
@@ -182,6 +188,12 @@ class RecallMemories(Extension):
                 memories = filtered_memories
                 solutions = filtered_solutions
 
+            except asyncio.CancelledError as e:
+                err = errors.format_error(e)
+                self.agent.context.log.log(
+                    type="warning", heading="Failed to filter relevant memories (cancelled)", content=err
+                )
+                filter_inds = []
             except Exception as e:
                 err = errors.format_error(e)
                 self.agent.context.log.log(
