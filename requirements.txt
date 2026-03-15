@@ -53,8 +53,8 @@ pywinpty==3.0.2; sys_platform == "win32"
 python-socketio>=5.14.2
 uvicorn>=0.38.0
 wsproto>=1.2.0
-# Security: CVE-2026-25990 in Pillow 12.0.0; fixed in 12.1.0
-Pillow>=12.1.0
+# Security: CVE-2026-25990 in Pillow <12.1.1 (OOB write via crafted PSD); fixed in 12.1.1
+Pillow>=12.1.1
 # Security: CVE-2026-23949 in jaraco.context <6.1.0 (path traversal via tarball()); fixed in 6.1.0
 jaraco.context>=6.1.0
 # Security: CVE-2025-47273 in setuptools <78.1.1 (directory traversal); fixed in 78.1.1
