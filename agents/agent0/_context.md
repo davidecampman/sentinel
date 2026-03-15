@@ -10,7 +10,6 @@
 |-----------|-------------|
 | Writing, editing, debugging code | `developer` subordinate |
 | Research, docs, API lookup | `researcher` subordinate |
-| Security review, pen testing, vulnerability analysis | `hacker` subordinate |
 | Web browsing, screenshots | browser_agent tool |
 | Simple factual answers | Handle directly |
 

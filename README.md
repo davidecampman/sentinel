@@ -128,7 +128,6 @@ All four agent profiles have detailed, opinionated instructions for corporate en
 | `agent0` (Sentinel) | Orchestrator | Delegation rules, output style guide, commit/push workflow |
 | `developer` | Code worker | Coding conventions, pre-done checklist, test/commit workflow |
 | `researcher` | Docs & info | Source priority order, stack-specific doc URLs |
-| `hacker` | Security review | OWASP focus areas, severity framework, finding format |
 
 ---
 
