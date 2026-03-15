@@ -1,82 +1,88 @@
 #!/usr/bin/env bash
-# build.sh — Build the Sentinel image
+# build.sh — Build and push Sentinel images to Docker Hub
 #
 # Usage:
-#   ./build.sh                          # builds sentinel:YYYYMMDD_HH_MM locally (arm64)
-#   ./build.sh --latest                 # also updates sentinel:latest locally
-#   ./build.sh --push dockerhub-user    # multi-arch build (amd64+arm64) + push to Docker Hub
-#   ./build.sh --no-cache               # forces full rebuild
+#   ./build.sh --branch main                  # builds base + run, tags :latest + :YYYYMMDD_HH_MM
+#   ./build.sh --branch develop               # builds base + run, tags :develop + :YYYYMMDD_HH_MM
+#   ./build.sh --branch main --skip-base      # skip base rebuild, only rebuild run image
+#   ./build.sh --branch main --no-cache       # forces full rebuild
 #
-# To test the new build without touching prod:
-#   AGENT_ZERO_IMAGE=sentinel:YYYYMMDD_HH_MM ./run.sh
+# Branch -> image tag mapping:
+#   main    -> decdevelopment/sentinel:latest
+#   develop -> decdevelopment/sentinel:develop
+#   <other> -> decdevelopment/sentinel:<branch>
 #
-# To promote to prod, update AGENT_ZERO_IMAGE in your .env
+# Pull and run after pushing:
+#   AGENT_ZERO_IMAGE=decdevelopment/sentinel:latest ./run.sh
 
 set -euo pipefail
 
+DOCKER_USER="decdevelopment"
 DATE_TAG="$(date +%Y%m%d_%H_%M)"
-LOCAL_IMAGE="sentinel:$DATE_TAG"
 NO_CACHE=""
-PUSH=false
-TAG_LATEST=false
-DOCKER_USER=""
+BRANCH=""
+SKIP_BASE=false
 
 for arg in "$@"; do
   case $arg in
-    --no-cache)     NO_CACHE="--no-cache" ;;
-    --push)         PUSH=true ;;
-    --latest)       TAG_LATEST=true ;;
-    *)              if $PUSH && [ -z "$DOCKER_USER" ]; then DOCKER_USER="$arg"; fi ;;
+    --no-cache)  NO_CACHE="--no-cache" ;;
+    --skip-base) SKIP_BASE=true ;;
+    --branch)    : ;;
+    *)           [ "${PREV_ARG:-}" = "--branch" ] && BRANCH="$arg" ;;
   esac
+  PREV_ARG="$arg"
 done
 
-if $PUSH; then
-  if [ -z "$DOCKER_USER" ]; then
-    echo "ERROR: --push requires a Docker Hub username."
-    echo "Usage: ./build.sh --push your-dockerhub-username"
-    exit 1
-  fi
+if [ -z "$BRANCH" ]; then
+  echo "ERROR: --branch is required."
+  echo "Usage: ./build.sh --branch <branch-name> [--skip-base] [--no-cache]"
+  exit 1
+fi
 
-  REMOTE_DATE_TAG="$DOCKER_USER/sentinel:$DATE_TAG"
-  TAGS="-t $REMOTE_DATE_TAG"
-  if $TAG_LATEST; then
-    TAGS="$TAGS -t $DOCKER_USER/sentinel:latest"
-  fi
+# Map branch name to image tag
+case "$BRANCH" in
+  main)    IMAGE_TAG="latest" ;;
+  *)       IMAGE_TAG="$BRANCH" ;;
+esac
 
-  echo "==> Building multi-arch (linux/amd64,linux/arm64) and pushing to Docker Hub ..."
+BASE_IMAGE="$DOCKER_USER/sentinel-base:latest"
+RUN_IMAGE="$DOCKER_USER/sentinel:$IMAGE_TAG"
+RUN_DATE_IMAGE="$DOCKER_USER/sentinel:$DATE_TAG"
+CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)"
+PLATFORM="linux/amd64,linux/arm64"
+
+if ! $SKIP_BASE; then
+  echo "==> [1/2] Building base image -> $BASE_IMAGE ..."
   docker buildx build \
-    --platform linux/amd64,linux/arm64 \
-    -f DockerfileLocal \
-    $TAGS \
-    --build-arg CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)" \
+    --platform "$PLATFORM" \
+    -f docker/base/Dockerfile \
+    -t "$BASE_IMAGE" \
+    --build-arg CACHE_DATE="$CACHE_DATE" \
     $NO_CACHE \
     --push \
-    .
-
+    ./docker/base
+  echo "Pushed: $BASE_IMAGE"
   echo ""
-  echo "Pushed: $REMOTE_DATE_TAG"
-  if $TAG_LATEST; then
-    echo "Pushed: $DOCKER_USER/sentinel:latest"
-  fi
-  echo ""
-  echo "To run from Docker Hub on any machine:"
-  echo "  AGENT_ZERO_IMAGE=$REMOTE_DATE_TAG ./run.sh"
 else
-  echo "==> Building $LOCAL_IMAGE (arm64) ..."
-  docker build \
-    -f DockerfileLocal \
-    -t "$LOCAL_IMAGE" \
-    --build-arg CACHE_DATE="$(date +%Y-%m-%d:%H:%M:%S)" \
-    $NO_CACHE \
-    .
-
+  echo "==> [1/2] Skipping base build (--skip-base)"
   echo ""
-  echo "Build complete: $LOCAL_IMAGE"
-
-  if $TAG_LATEST; then
-    docker tag "$LOCAL_IMAGE" "sentinel:latest"
-    echo "Tagged:  sentinel:latest -> $LOCAL_IMAGE"
-  fi
-
-  echo "Run with:  ./run.sh"
 fi
+
+echo "==> [2/2] Building run image (branch: $BRANCH) -> $RUN_IMAGE, $RUN_DATE_IMAGE ..."
+docker buildx build \
+  --platform "$PLATFORM" \
+  -f docker/run/Dockerfile \
+  -t "$RUN_IMAGE" \
+  -t "$RUN_DATE_IMAGE" \
+  --build-arg BRANCH="$BRANCH" \
+  --build-arg CACHE_DATE="$CACHE_DATE" \
+  $NO_CACHE \
+  --push \
+  ./docker/run
+
+echo ""
+echo "Pushed: $RUN_IMAGE"
+echo "Pushed: $RUN_DATE_IMAGE"
+echo ""
+echo "To run:"
+echo "  AGENT_ZERO_IMAGE=$RUN_IMAGE ./run.sh"
