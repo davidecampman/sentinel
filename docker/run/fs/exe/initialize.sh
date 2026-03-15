@@ -16,6 +16,21 @@ cp -r --no-preserve=ownership,mode /per/* /
 chmod 444 /root/.bashrc
 chmod 444 /root/.profile
 
+# Restore custom CA certificate into the system trust store.
+# tls.env is written by apply_env_vars() when TLS settings are saved; SSL_CERT_FILE
+# holds the path to the user-configured CA bundle.  Installing it here ensures
+# ssl.create_default_context() — used by aiohttp, botocore/Bedrock, and others —
+# trusts the corporate CA from the very first connection, before the Python app
+# has had a chance to call apply_env_vars() itself.
+if [ -f /a0/usr/tls.env ]; then
+    CERT_PATH=$(grep '^export SSL_CERT_FILE=' /a0/usr/tls.env | cut -d= -f2-)
+    if [ -n "$CERT_PATH" ] && [ -f "$CERT_PATH" ]; then
+        cp "$CERT_PATH" /usr/local/share/ca-certificates/sentinel-ca.crt
+        update-ca-certificates 2>/dev/null || true
+        echo "Custom CA certificate installed from $CERT_PATH"
+    fi
+fi
+
 # update package list to save time later
 apt-get update > /dev/null 2>&1 &
 

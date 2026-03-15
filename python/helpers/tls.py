@@ -21,6 +21,10 @@ from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING:
     import aiohttp
 
+# Destination inside Ubuntu's system CA trust store.
+# update-ca-certificates scans /usr/local/share/ca-certificates/ for *.crt files.
+_SYSTEM_CA_CERT = "/usr/local/share/ca-certificates/sentinel-ca.crt"
+
 
 def get_verify() -> Union[bool, str]:
     """
@@ -134,12 +138,54 @@ def get_litellm_kwargs() -> dict:
     return {}
 
 
+def _update_system_ca_store(bundle_path: Union[str, None]) -> None:
+    """
+    Install or remove the custom CA bundle from Ubuntu's system trust store
+    and rebuild the consolidated CA bundle via update-ca-certificates.
+
+    Installing the cert at the OS level means every SSL context created by
+    ssl.create_default_context() — including those inside aiohttp, httpx,
+    botocore, and any other library — automatically trusts the corporate CA
+    without needing per-library env vars or per-call parameters.
+
+    This is a best-effort operation: it silently does nothing on non-Ubuntu
+    hosts or when the process lacks sufficient privilege.
+
+    Args:
+        bundle_path: Absolute path to a PEM CA bundle to install, or None to
+                     remove any previously installed bundle.
+    """
+    import shutil
+    import subprocess
+
+    try:
+        if bundle_path:
+            os.makedirs(os.path.dirname(_SYSTEM_CA_CERT), exist_ok=True)
+            shutil.copy2(bundle_path, _SYSTEM_CA_CERT)
+        else:
+            if not os.path.exists(_SYSTEM_CA_CERT):
+                return  # Nothing installed, nothing to do.
+            os.remove(_SYSTEM_CA_CERT)
+
+        subprocess.run(
+            ["update-ca-certificates"],
+            capture_output=True,
+            check=False,
+        )
+    except Exception:
+        pass  # Non-fatal — env vars remain as fallback for most libraries.
+
+
 def apply_env_vars() -> None:
     """
     Export TLS settings as environment variables so that libraries which
     respect them (requests, httpx, curl, openssl) pick up the right certs
-    automatically.  Also configures LiteLLM's global SSL properties so that
-    all subsequent litellm calls use the correct CA bundle / verification mode.
+    automatically.  Also installs or removes the custom CA bundle from the
+    Ubuntu system trust store so that ssl.create_default_context() — used
+    by aiohttp, botocore/Bedrock, and others — picks up the cert without
+    needing per-library configuration.  Finally, configures LiteLLM's global
+    SSL properties so that all subsequent litellm calls use the correct CA
+    bundle / verification mode.
 
     Should be called once during _apply_settings().
     """
@@ -157,19 +203,12 @@ def apply_env_vars() -> None:
         os.environ.pop("REQUESTS_CA_BUNDLE", None)
         os.environ.pop("SSL_CERT_FILE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
-        # AWS_CA_BUNDLE is read by botocore (boto3) for AWS service connections
-        # including Bedrock.  Clear it so any pre-existing value doesn't force
-        # certificate verification when the user has disabled it.
-        os.environ.pop("AWS_CA_BUNDLE", None)
     elif isinstance(verify, str):
         # Custom CA bundle path.
         os.environ["REQUESTS_CA_BUNDLE"] = verify
         os.environ["SSL_CERT_FILE"] = verify
         os.environ["CURL_CA_BUNDLE"] = verify
         os.environ["NODE_EXTRA_CA_CERTS"] = verify
-        # botocore (boto3) reads AWS_CA_BUNDLE for AWS service TLS verification
-        # (e.g. Bedrock).  REQUESTS_CA_BUNDLE is NOT used by botocore.
-        os.environ["AWS_CA_BUNDLE"] = verify
         os.environ.pop("PYTHONHTTPSVERIFY", None)
     else:
         # Restore defaults – remove overrides.
@@ -178,7 +217,10 @@ def apply_env_vars() -> None:
         os.environ.pop("SSL_CERT_FILE", None)
         os.environ.pop("CURL_CA_BUNDLE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
-        os.environ.pop("AWS_CA_BUNDLE", None)
+
+    # Install / remove the cert from Ubuntu's system trust store so that
+    # ssl.create_default_context() picks it up globally (aiohttp, botocore, …).
+    _update_system_ca_store(verify if isinstance(verify, str) else None)
 
     # Configure LiteLLM global SSL properties so all subsequent litellm calls
     # inherit the correct verification mode / CA bundle without needing per-call
@@ -212,7 +254,6 @@ def apply_env_vars() -> None:
                 "unset REQUESTS_CA_BUNDLE",
                 "unset SSL_CERT_FILE",
                 "unset NODE_EXTRA_CA_CERTS",
-                "unset AWS_CA_BUNDLE",
             ]
         elif isinstance(verify, str):
             lines = [
@@ -220,7 +261,6 @@ def apply_env_vars() -> None:
                 f"export SSL_CERT_FILE={verify}",
                 f"export CURL_CA_BUNDLE={verify}",
                 f"export NODE_EXTRA_CA_CERTS={verify}",
-                f"export AWS_CA_BUNDLE={verify}",
                 "unset PYTHONHTTPSVERIFY",
             ]
         else:
@@ -230,7 +270,6 @@ def apply_env_vars() -> None:
                 "unset SSL_CERT_FILE",
                 "unset CURL_CA_BUNDLE",
                 "unset NODE_EXTRA_CA_CERTS",
-                "unset AWS_CA_BUNDLE",
             ]
         with open(env_path, "w") as _f:
             _f.write("\n".join(lines) + "\n")
