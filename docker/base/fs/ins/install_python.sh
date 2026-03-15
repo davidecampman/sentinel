@@ -7,11 +7,7 @@ echo "====================PYTHON 3.13===================="
 
 apt clean && apt-get update && apt-get -y upgrade
 
-# Add deadsnakes PPA for Python 3.13 (not in Ubuntu 24.04 default repos)
-apt-get install -y --no-install-recommends software-properties-common
-add-apt-repository -y ppa:deadsnakes/ppa
-apt-get update
-
+# Ubuntu 25.10 (questing) ships Python 3.13 natively; no PPA needed
 # install python 3.13 globally
 apt-get install -y --no-install-recommends \
     python3.13 python3.13-venv
