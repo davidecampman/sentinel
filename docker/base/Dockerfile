@@ -1,5 +1,6 @@
-# 1. Use Ubuntu 24.04 LTS as the foundation
-FROM ubuntu:24.04
+# Use Ubuntu 25.10 (Questing Quokka) — ships mbedtls 3.x, ffmpeg 7.x, libssh 0.11.x
+# TODO: migrate to ubuntu:26.04 LTS when released (April 2026) for long-term support
+FROM ubuntu:25.10
 
 # 2. IMMEDIATE SECURITY UPDATE & LOCALE SETUP
 # We combine these into one RUN command to keep the image small
