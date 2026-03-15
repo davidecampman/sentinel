@@ -6,6 +6,7 @@
 #   ./build.sh --branch develop               # builds base + run, tags :develop + :YYYYMMDD_HH_MM
 #   ./build.sh --branch main --skip-base      # skip base rebuild, only rebuild run image
 #   ./build.sh --branch main --no-cache       # forces full rebuild
+#   ./build.sh --branch main --builder cloud-<org>-<name>  # use Docker Build Cloud
 #
 # Branch -> image tag mapping:
 #   main    -> decdevelopment/sentinel:latest
@@ -22,16 +23,24 @@ DATE_TAG="$(date +%Y%m%d_%H_%M)"
 NO_CACHE=""
 BRANCH=""
 SKIP_BASE=false
+BUILDER="${DOCKER_BUILDER:-}"
 
 for arg in "$@"; do
   case $arg in
     --no-cache)  NO_CACHE="--no-cache" ;;
     --skip-base) SKIP_BASE=true ;;
     --branch)    : ;;
-    *)           [ "${PREV_ARG:-}" = "--branch" ] && BRANCH="$arg" ;;
+    --builder)   : ;;
+    *)
+      [ "${PREV_ARG:-}" = "--branch" ]  && BRANCH="$arg"
+      [ "${PREV_ARG:-}" = "--builder" ] && BUILDER="$arg"
+      ;;
   esac
   PREV_ARG="$arg"
 done
+
+BUILDER_FLAG=""
+[ -n "$BUILDER" ] && BUILDER_FLAG="--builder $BUILDER"
 
 if [ -z "$BRANCH" ]; then
   echo "ERROR: --branch is required."
@@ -54,6 +63,7 @@ PLATFORM="linux/amd64,linux/arm64"
 if ! $SKIP_BASE; then
   echo "==> [1/2] Building base image -> $BASE_IMAGE ..."
   docker buildx build \
+    $BUILDER_FLAG \
     --platform "$PLATFORM" \
     -f docker/base/Dockerfile \
     -t "$BASE_IMAGE" \
@@ -70,6 +80,7 @@ fi
 
 echo "==> [2/2] Building run image (branch: $BRANCH) -> $RUN_IMAGE, $RUN_DATE_IMAGE ..."
 docker buildx build \
+  $BUILDER_FLAG \
   --platform "$PLATFORM" \
   -f docker/run/Dockerfile \
   -t "$RUN_IMAGE" \
