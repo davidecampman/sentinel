@@ -161,10 +161,7 @@ class Settings(TypedDict):
     tls_ca_bundle: str     # Absolute path to PEM CA bundle; empty = system/certifi default
 
     # 1Password integration (CLI / service account)
-    op_enabled: bool
     op_service_account_token: str  # stored in .env, never in settings.json
-    op_mirror_vault: str           # vault name for mirror mode; empty = mirror disabled
-    op_mirror_item: str            # item name within the mirror vault
 
 
 class PartialSettings(Settings, total=False):
@@ -641,10 +638,7 @@ def get_default_settings() -> Settings:
         litellm_global_kwargs=get_default_value("litellm_global_kwargs", {}),
         tls_verify=get_default_value("tls_verify", True),
         tls_ca_bundle=get_default_value("tls_ca_bundle", ""),
-        op_enabled=get_default_value("op_enabled", False),
         op_service_account_token="",
-        op_mirror_vault=get_default_value("op_mirror_vault", ""),
-        op_mirror_item=get_default_value("op_mirror_item", "Sentinel"),
     )
 
 
