@@ -174,7 +174,11 @@ class SecretsManager:
         files.write_file(self._files[0], content)
 
     def load_secrets(self) -> Dict[str, str]:
-        """Load secrets from file, return key-value dict"""
+        """Load secrets from file, return key-value dict.
+
+        After parsing the env file, any value that begins with ``op://`` is
+        resolved via the 1Password CLI using the configured service account token.
+        """
         with self._lock:
             if self._secrets_cache is not None:
                 return self._secrets_cache
@@ -188,8 +192,38 @@ class SecretsManager:
             if len(self._files) != 1:
                 self._last_raw_text = None
 
+            merged_secrets = self._resolve_op_references(merged_secrets)
+
             self._secrets_cache = merged_secrets
             return merged_secrets
+
+    def _resolve_op_references(self, secrets: Dict[str, str]) -> Dict[str, str]:
+        """Replace any ``op://`` reference values with their plaintext secrets."""
+        from python.helpers.onepassword import OP_REFERENCE_PREFIX, OnePasswordError, get_provider
+
+        has_refs = any(v.startswith(OP_REFERENCE_PREFIX) for v in secrets.values())
+        if not has_refs:
+            return secrets
+
+        try:
+            provider = get_provider()
+            if not provider.is_available():
+                return secrets
+        except Exception:
+            return secrets
+
+        resolved = dict(secrets)
+        for key, value in secrets.items():
+            if not value.startswith(OP_REFERENCE_PREFIX):
+                continue
+            try:
+                resolved[key] = provider.read(value)
+            except OnePasswordError as exc:
+                raise RepairableException(
+                    f"Failed to resolve 1Password reference for secret '{key}' "
+                    f"({value}): {exc}"
+                ) from exc
+        return resolved
 
     def save_secrets(self, secrets_content: str):
         """Save secrets content to file and update cache"""
