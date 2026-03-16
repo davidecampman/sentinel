@@ -25,5 +25,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: DockerfileLocal
           push: true
           tags: ${{ secrets.DOCKER_USER }}/sentinel:develop
+          build-args: |
+            BRANCH=develop
