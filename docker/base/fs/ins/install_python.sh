@@ -25,34 +25,26 @@ pip install --no-cache-dir "pip>=25.0" pipx ipython requests
 
 echo "====================PYTHON PYVENV===================="
 
-# Install pyenv build dependencies.
+# Install build dependencies (needed by uv, torch, and other downstream packages).
 apt-get install -y --no-install-recommends \
     make build-essential libssl-dev zlib1g-dev libbz2-dev \
     libreadline-dev libsqlite3-dev wget curl llvm \
     libncursesw5-dev xz-utils tk-dev libxml2-dev \
     libxmlsec1-dev libffi-dev liblzma-dev
 
-# Install pyenv globally
-git clone https://github.com/pyenv/pyenv.git /opt/pyenv
+# Install Python 3.12 directly from the Ubuntu 25.10 universe repo instead of via pyenv.
+#
+# pyenv uses #!/usr/bin/env shebang scripts (pyenv init --path, shims, etc.). Under QEMU
+# (linux/arm64 buildx cross-compilation) Node.js 22's process-name security check fires
+# for any #!/usr/bin/env <name> invocation where the resolved executable path doesn't
+# match the requested utility name, exiting with code 1.
+# Ubuntu 25.10 ships python3.12 alongside the default python3.13 in the universe repo,
+# so we can install it directly without pyenv.
+apt-get install -y --no-install-recommends python3.12 python3.12-venv
 
-# Setup environment variables for pyenv to be available system-wide
-cat > /etc/profile.d/pyenv.sh <<'EOF'
-export PYENV_ROOT="/opt/pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
-EOF
+echo "====================PYTHON 3.12 VENV===================="
 
-# fix permissions
-chmod +x /etc/profile.d/pyenv.sh
-
-# Source pyenv environment to make it available in this script
-source /etc/profile.d/pyenv.sh
-
-# Install Python 3.12.4
-echo "====================PYENV 3.12 VENV===================="
-pyenv install 3.12.4
-
-/opt/pyenv/versions/3.12.4/bin/python -m venv /opt/venv-a0
+python3.12 -m venv /opt/venv-a0
 source /opt/venv-a0/bin/activate
 
 # upgrade pip; CVE-2025-8869 affects pip 24.0, fixed in 25.0+
