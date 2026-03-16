@@ -175,17 +175,28 @@ def _patch_ssl_defaults(verify: Union[bool, str]) -> None:
 def _patch_httpx_defaults(verify: Union[bool, str]) -> None:
     """
     Monkey-patch httpx.AsyncClient and httpx.Client so that every new client
-    uses our SSL verification setting by default.
+    uses our SSL verification setting.
 
-    LiteLLM (and the underlying OpenAI SDK) create httpx clients internally.
-    Setting litellm.ssl_verify is supposed to propagate the setting, but a
-    long-standing regression (BerriAI/litellm#9340) means the async client
-    path does not always honour it.  Patching the httpx constructors ensures
-    the correct ssl.SSLContext is used no matter how or when the client is
-    created.
+    LiteLLM (and the underlying OpenAI SDK) create httpx clients internally
+    and pass an explicit ``verify=ssl_config`` obtained from their own
+    ``get_ssl_configuration()`` helper.  Because that helper reads from
+    ``litellm.ssl_verify`` and ``SSL_CERT_FILE`` (both of which we already
+    set in apply_env_vars), it *should* produce the right value — but due to
+    caching, import ordering, and regressions (BerriAI/litellm#9340) the
+    value may be stale.
 
-    Uses setdefault() so that any caller that passes an explicit verify=
-    argument still wins – we only supply the default.
+    Strategy:
+      * When verify is **False** we FORCE ``verify=False`` on every new httpx
+        client, overriding whatever the caller passed (a stale SSLContext from
+        LiteLLM's cache would still enforce verification).
+      * When verify is a **CA-bundle path** we do NOT force-override: the
+        env-var setup (``SSL_CERT_FILE``, system CA store) already ensures
+        that ``ssl.create_default_context()`` and ``certifi.where()`` return
+        the right certs.  LiteLLM's ``get_ssl_configuration()`` calls
+        ``ssl.create_default_context(cafile=…)`` using ``SSL_CERT_FILE``, so
+        any freshly-created client will pick up the custom bundle.  We only
+        inject the default for callers that do not pass verify themselves.
+      * When verify is **True** we restore the original constructors.
     """
     try:
         import httpx as _httpx  # type: ignore
@@ -200,45 +211,106 @@ def _patch_httpx_defaults(verify: Union[bool, str]) -> None:
             # Restore original constructors (system/certifi default certs).
             _httpx.AsyncClient.__init__ = _httpx.AsyncClient._sentinel_orig_init
             _httpx.Client.__init__ = _httpx.Client._sentinel_orig_init
+        elif verify is False:
+            # FORCE verify=False, overriding any explicit value the caller
+            # passes (litellm may pass a stale SSLContext from its cache).
+            _orig_async = _httpx.AsyncClient._sentinel_orig_init
+            _orig_sync = _httpx.Client._sentinel_orig_init
+
+            def _patched_async_init_disabled(self, *args, **kwargs):  # type: ignore[misc]
+                kwargs["verify"] = False
+                _orig_async(self, *args, **kwargs)
+
+            def _patched_sync_init_disabled(self, *args, **kwargs):  # type: ignore[misc]
+                kwargs["verify"] = False
+                _orig_sync(self, *args, **kwargs)
+
+            _httpx.AsyncClient.__init__ = _patched_async_init_disabled
+            _httpx.Client.__init__ = _patched_sync_init_disabled
         else:
-            # verify is False or a CA-bundle path string.
+            # verify is a CA-bundle path string.  Use setdefault so callers
+            # that already pass the correct verify (e.g. litellm reading
+            # SSL_CERT_FILE) are not overridden.
             _verify = verify
             _orig_async = _httpx.AsyncClient._sentinel_orig_init
             _orig_sync = _httpx.Client._sentinel_orig_init
 
-            def _patched_async_init(self, *args, **kwargs):  # type: ignore[misc]
+            def _patched_async_init_bundle(self, *args, **kwargs):  # type: ignore[misc]
                 kwargs.setdefault("verify", _verify)
                 _orig_async(self, *args, **kwargs)
 
-            def _patched_sync_init(self, *args, **kwargs):  # type: ignore[misc]
+            def _patched_sync_init_bundle(self, *args, **kwargs):  # type: ignore[misc]
                 kwargs.setdefault("verify", _verify)
                 _orig_sync(self, *args, **kwargs)
 
-            _httpx.AsyncClient.__init__ = _patched_async_init
-            _httpx.Client.__init__ = _patched_sync_init
+            _httpx.AsyncClient.__init__ = _patched_async_init_bundle
+            _httpx.Client.__init__ = _patched_sync_init_bundle
     except Exception:
         pass
 
 
 def _clear_litellm_client_cache() -> None:
     """
-    Clear LiteLLM's cached HTTP clients so they are recreated on the next call.
+    Clear **all** LiteLLM cached HTTP / OpenAI clients so they are recreated
+    on the next call with the current SSL configuration.
 
-    LiteLLM caches openai.AsyncOpenAI / openai.OpenAI instances that embed an
-    httpx client built at construction time.  After changing SSL settings we
-    must discard those stale clients; otherwise the new ssl._create_default_https_context
-    and httpx defaults only take effect for clients created *after* this call.
+    LiteLLM ≥1.55 uses ``litellm.in_memory_llm_clients_cache`` (an
+    ``LLMClientCache(InMemoryCache)`` with a ``.flush_cache()`` method) to
+    store ``OpenAI`` / ``AsyncOpenAI`` instances that embed an httpx client
+    built at construction time.  Additionally, ``litellm.module_level_client``
+    (an ``HTTPHandler``) and ``litellm.module_level_aclient`` are singleton
+    HTTP handlers that also embed an httpx client.
+
+    After changing SSL settings we must discard *all* of these stale clients;
+    otherwise the new ssl defaults only take effect for clients created
+    *after* apply_env_vars() runs.
+
+    Earlier litellm versions (<1.55) stored clients in module-level attrs
+    like ``_async_openai_client``; we still clear those as a safety net.
 
     This is best-effort: attribute names differ across litellm versions.
     """
     try:
         import litellm as _ll  # type: ignore
 
-        # Module-level client attributes seen across litellm v1.x versions.
+        # ── Primary cache (litellm ≥1.55) ──────────────────────────────────
+        # This is the main client cache used by _get_openai_client() and all
+        # provider handlers.  Flushing it forces fresh OpenAI/httpx clients to
+        # be created on the next LLM call.
+        try:
+            cache = getattr(_ll, "in_memory_llm_clients_cache", None)
+            if cache is not None and hasattr(cache, "flush_cache"):
+                cache.flush_cache()
+                logger.debug("Flushed litellm.in_memory_llm_clients_cache")
+        except Exception:
+            pass
+
+        # ── Module-level HTTP handlers ──────────────────────────────────────
+        # litellm.module_level_client is an HTTPHandler used for moderation
+        # and other non-provider calls.  It also embeds an httpx client.
+        # Setting it to None forces litellm to recreate it on next use.
+        for _handler_attr in ("module_level_client", "module_level_aclient"):
+            try:
+                if getattr(_ll, _handler_attr, None) is not None:
+                    setattr(_ll, _handler_attr, None)
+            except Exception:
+                pass
+
+        # ── Session-level overrides ─────────────────────────────────────────
+        # If a user has set client_session / aclient_session, those override
+        # _get_async_http_client() and _get_sync_http_client() return values.
+        # Clearing them ensures new clients respect the updated SSL config.
+        for _session_attr in ("client_session", "aclient_session"):
+            try:
+                if getattr(_ll, _session_attr, None) is not None:
+                    setattr(_ll, _session_attr, None)
+            except Exception:
+                pass
+
+        # ── Legacy module-level client attrs (litellm <1.55) ───────────────
         for _attr in (
             "_async_openai_client",
             "_openai_client",
-            "client_session",
             "aclient",
             "client",
         ):
@@ -363,6 +435,9 @@ def apply_env_vars() -> None:
         # including Bedrock.  Clear it so any pre-existing value doesn't force
         # certificate verification when the user has disabled it.
         os.environ.pop("AWS_CA_BUNDLE", None)
+        # SSL_VERIFY is read by litellm's get_ssl_configuration() as a fallback.
+        # Clear it so a stale "true" value doesn't override litellm.ssl_verify.
+        os.environ.pop("SSL_VERIFY", None)
     elif isinstance(verify, str):
         # Custom CA bundle path.
         os.environ["REQUESTS_CA_BUNDLE"] = verify
@@ -373,6 +448,9 @@ def apply_env_vars() -> None:
         # (e.g. Bedrock).  REQUESTS_CA_BUNDLE is NOT used by botocore.
         os.environ["AWS_CA_BUNDLE"] = verify
         os.environ.pop("PYTHONHTTPSVERIFY", None)
+        # SSL_VERIFY is read by litellm's get_ssl_configuration() as a fallback.
+        # Clear it so the per-call ssl_verify kwarg (CA path) takes precedence.
+        os.environ.pop("SSL_VERIFY", None)
     else:
         # Restore defaults – remove overrides.
         os.environ.pop("PYTHONHTTPSVERIFY", None)
@@ -381,6 +459,7 @@ def apply_env_vars() -> None:
         os.environ.pop("CURL_CA_BUNDLE", None)
         os.environ.pop("NODE_EXTRA_CA_CERTS", None)
         os.environ.pop("AWS_CA_BUNDLE", None)
+        os.environ.pop("SSL_VERIFY", None)
 
     # Install / remove the cert from Ubuntu's system trust store so that
     # ssl.create_default_context() picks it up globally (aiohttp, botocore, …).
@@ -436,6 +515,7 @@ def apply_env_vars() -> None:
                 "unset SSL_CERT_FILE",
                 "unset NODE_EXTRA_CA_CERTS",
                 "unset AWS_CA_BUNDLE",
+                "unset SSL_VERIFY",
             ]
         elif isinstance(verify, str):
             lines = [
@@ -445,6 +525,7 @@ def apply_env_vars() -> None:
                 f"export NODE_EXTRA_CA_CERTS={verify}",
                 f"export AWS_CA_BUNDLE={verify}",
                 "unset PYTHONHTTPSVERIFY",
+                "unset SSL_VERIFY",
             ]
         else:
             lines = [
@@ -454,6 +535,7 @@ def apply_env_vars() -> None:
                 "unset CURL_CA_BUNDLE",
                 "unset NODE_EXTRA_CA_CERTS",
                 "unset AWS_CA_BUNDLE",
+                "unset SSL_VERIFY",
             ]
         with open(env_path, "w") as _f:
             _f.write("\n".join(lines) + "\n")

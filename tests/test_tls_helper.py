@@ -2,13 +2,15 @@
 Tests for the centralized TLS helper (python/helpers/tls.py).
 
 These tests exercise get_verify(), get_ssl_context(), get_aiohttp_connector_kwargs(),
-get_imap_ssl_context(), get_playwright_args(), and apply_env_vars() under the
-three TLS configurations: verify disabled, custom CA bundle, default system certs.
+get_imap_ssl_context(), get_playwright_args(), apply_env_vars(),
+_clear_litellm_client_cache(), _patch_httpx_defaults(), and _patch_ssl_defaults()
+under the three TLS configurations: verify disabled, custom CA bundle, default
+system certs.
 """
 import os
 import ssl
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, PropertyMock
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -139,6 +141,7 @@ class TestApplyEnvVars:
         # Python 3.12+ so we no longer set it).
         os.environ["PYTHONHTTPSVERIFY"] = "0"
         os.environ["AWS_CA_BUNDLE"] = "/some/old/bundle.pem"
+        os.environ["SSL_VERIFY"] = "true"
         with patch("python.helpers.settings.get_settings", return_value=_settings(False)):
             with patch.object(tls, "_update_system_ca_store"):
                 tls.apply_env_vars()
@@ -151,6 +154,9 @@ class TestApplyEnvVars:
             # AWS_CA_BUNDLE must be cleared so botocore/Bedrock doesn't try to
             # verify certs when the user has disabled verification.
             assert "AWS_CA_BUNDLE" not in os.environ
+            # SSL_VERIFY is read by litellm's get_ssl_configuration() — must be
+            # cleared so it doesn't override litellm.ssl_verify=False.
+            assert "SSL_VERIFY" not in os.environ
 
     def test_sets_bundle_env_vars(self, tmp_path):
         from python.helpers import tls
@@ -165,6 +171,7 @@ class TestApplyEnvVars:
             # AWS_CA_BUNDLE is read by botocore (boto3) for Bedrock connections —
             # REQUESTS_CA_BUNDLE is NOT used by botocore.
             assert os.environ.get("AWS_CA_BUNDLE") == bundle
+            assert "SSL_VERIFY" not in os.environ
 
     def test_clears_overrides_when_default(self):
         from python.helpers import tls
@@ -172,12 +179,14 @@ class TestApplyEnvVars:
         os.environ["REQUESTS_CA_BUNDLE"] = "/old/path"
         os.environ["PYTHONHTTPSVERIFY"] = "0"
         os.environ["AWS_CA_BUNDLE"] = "/old/path"
+        os.environ["SSL_VERIFY"] = "true"
         with patch("python.helpers.settings.get_settings", return_value=_settings(True, "")):
             with patch.object(tls, "_update_system_ca_store"):
                 tls.apply_env_vars()
             assert "REQUESTS_CA_BUNDLE" not in os.environ
             assert "PYTHONHTTPSVERIFY" not in os.environ
             assert "AWS_CA_BUNDLE" not in os.environ
+            assert "SSL_VERIFY" not in os.environ
 
     def test_system_ca_store_called_with_bundle_path(self, tmp_path):
         from python.helpers import tls
@@ -280,26 +289,142 @@ class TestPatchHttpxDefaults:
         except ImportError:
             pytest.skip("httpx not installed")
         from python.helpers import tls
-        created_with = {}
 
-        orig_init = httpx.AsyncClient.__init__
+        orig_init = getattr(httpx.AsyncClient, "_sentinel_orig_init", httpx.AsyncClient.__init__)
         try:
             tls._patch_httpx_defaults(False)
-            # Capture what verify value a new AsyncClient would receive
-            patched_init = httpx.AsyncClient.__init__
+            # Capture what verify value the patched init sets
+            created_with = {}
+            _patched = httpx.AsyncClient.__init__
+
             def _spy(self, *args, **kwargs):
+                # The patched init should have already forced verify=False
                 created_with["verify"] = kwargs.get("verify", "NOT_SET")
+                # Call original to avoid side effects
                 orig_init(self, *args, **kwargs)
+
             httpx.AsyncClient.__init__ = _spy
             try:
                 httpx.AsyncClient()
             except Exception:
                 pass
-            assert created_with.get("verify") is False
+
+            # When verify=False, the patch should NOT have set anything via
+            # setdefault (which wouldn't override); it should FORCE verify=False.
+            # But since we replaced __init__ with our spy, let's test the
+            # patched function directly instead.
         finally:
-            # Restore sentinel_orig_init as actual __init__ to clean up
+            httpx.AsyncClient.__init__ = orig_init
             if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
-                httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+                del httpx.AsyncClient._sentinel_orig_init
+            if hasattr(httpx.Client, "_sentinel_orig_init"):
+                del httpx.Client._sentinel_orig_init
+
+    def test_force_overrides_explicit_verify_when_disabled(self):
+        """When TLS verify is disabled, the patch must FORCE verify=False
+        even if the caller explicitly passes verify=some_ssl_context."""
+        try:
+            import httpx
+        except ImportError:
+            pytest.skip("httpx not installed")
+        from python.helpers import tls
+
+        # Clean up any previous patches
+        if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+            httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+            del httpx.AsyncClient._sentinel_orig_init
+        if hasattr(httpx.Client, "_sentinel_orig_init"):
+            httpx.Client.__init__ = httpx.Client._sentinel_orig_init
+            del httpx.Client._sentinel_orig_init
+
+        orig_async = httpx.AsyncClient.__init__
+        orig_sync = httpx.Client.__init__
+        try:
+            tls._patch_httpx_defaults(False)
+
+            # Intercept what the original __init__ receives AFTER patching
+            received_kwargs = {}
+            stored_orig = httpx.AsyncClient._sentinel_orig_init
+
+            def _intercept(self, *args, **kwargs):
+                received_kwargs.update(kwargs)
+
+            httpx.AsyncClient._sentinel_orig_init = _intercept
+            # Re-apply patch so it captures the new _sentinel_orig_init
+            tls._patch_httpx_defaults(False)
+
+            # Simulate what litellm does: pass verify=<ssl_context>
+            stale_ctx = ssl.create_default_context()
+            try:
+                httpx.AsyncClient(verify=stale_ctx)
+            except Exception:
+                pass
+
+            # The patch must have forced verify=False, overriding the ssl context
+            assert received_kwargs.get("verify") is False, \
+                f"Expected verify=False but got verify={received_kwargs.get('verify')}"
+        finally:
+            httpx.AsyncClient.__init__ = orig_async
+            httpx.Client.__init__ = orig_sync
+            if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+                del httpx.AsyncClient._sentinel_orig_init
+            if hasattr(httpx.Client, "_sentinel_orig_init"):
+                del httpx.Client._sentinel_orig_init
+
+    def test_bundle_path_uses_setdefault(self):
+        """When TLS verify is a CA bundle path, the patch should use
+        setdefault so an explicit verify= from litellm wins."""
+        try:
+            import httpx
+        except ImportError:
+            pytest.skip("httpx not installed")
+        from python.helpers import tls
+
+        # Clean up any previous patches
+        if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+            httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+            del httpx.AsyncClient._sentinel_orig_init
+        if hasattr(httpx.Client, "_sentinel_orig_init"):
+            httpx.Client.__init__ = httpx.Client._sentinel_orig_init
+            del httpx.Client._sentinel_orig_init
+
+        orig_async = httpx.AsyncClient.__init__
+        orig_sync = httpx.Client.__init__
+        try:
+            tls._patch_httpx_defaults("/custom/ca.pem")
+
+            # Intercept
+            received_kwargs = {}
+            stored_orig = httpx.AsyncClient._sentinel_orig_init
+
+            def _intercept(self, *args, **kwargs):
+                received_kwargs.update(kwargs)
+
+            httpx.AsyncClient._sentinel_orig_init = _intercept
+            tls._patch_httpx_defaults("/custom/ca.pem")
+
+            # Case 1: caller passes no verify → should get the bundle path
+            try:
+                httpx.AsyncClient()
+            except Exception:
+                pass
+            assert received_kwargs.get("verify") == "/custom/ca.pem"
+
+            # Case 2: caller passes explicit verify → should keep caller's value
+            received_kwargs.clear()
+            explicit_ctx = ssl.create_default_context()
+            try:
+                httpx.AsyncClient(verify=explicit_ctx)
+            except Exception:
+                pass
+            assert received_kwargs.get("verify") is explicit_ctx
+        finally:
+            httpx.AsyncClient.__init__ = orig_async
+            httpx.Client.__init__ = orig_sync
+            if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+                del httpx.AsyncClient._sentinel_orig_init
+            if hasattr(httpx.Client, "_sentinel_orig_init"):
+                del httpx.Client._sentinel_orig_init
 
     def test_restores_default_when_verify_true(self):
         try:
@@ -307,8 +432,189 @@ class TestPatchHttpxDefaults:
         except ImportError:
             pytest.skip("httpx not installed")
         from python.helpers import tls
-        # Patch then restore
-        tls._patch_httpx_defaults(False)
-        tls._patch_httpx_defaults(True)
-        # After restore, __init__ should be the stored original
-        assert httpx.AsyncClient.__init__ is httpx.AsyncClient._sentinel_orig_init
+
+        # Clean up any previous patches
+        if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+            httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+            del httpx.AsyncClient._sentinel_orig_init
+        if hasattr(httpx.Client, "_sentinel_orig_init"):
+            httpx.Client.__init__ = httpx.Client._sentinel_orig_init
+            del httpx.Client._sentinel_orig_init
+
+        orig_async = httpx.AsyncClient.__init__
+        orig_sync = httpx.Client.__init__
+        try:
+            # Patch then restore
+            tls._patch_httpx_defaults(False)
+            tls._patch_httpx_defaults(True)
+            # After restore, __init__ should be the stored original
+            assert httpx.AsyncClient.__init__ is httpx.AsyncClient._sentinel_orig_init
+            assert httpx.Client.__init__ is httpx.Client._sentinel_orig_init
+        finally:
+            httpx.AsyncClient.__init__ = orig_async
+            httpx.Client.__init__ = orig_sync
+            if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+                del httpx.AsyncClient._sentinel_orig_init
+            if hasattr(httpx.Client, "_sentinel_orig_init"):
+                del httpx.Client._sentinel_orig_init
+
+
+# ---------------------------------------------------------------------------
+# _clear_litellm_client_cache()
+# ---------------------------------------------------------------------------
+
+class TestClearLitellmClientCache:
+    def test_flushes_in_memory_llm_clients_cache(self):
+        """The primary cache in litellm ≥1.55 is in_memory_llm_clients_cache.
+        _clear_litellm_client_cache must call flush_cache() on it."""
+        from python.helpers import tls
+
+        mock_cache = MagicMock()
+        mock_cache.flush_cache = MagicMock()
+
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = mock_cache
+        # Attributes that should be cleared
+        mock_litellm.module_level_client = MagicMock()
+        mock_litellm.module_level_aclient = MagicMock()
+        mock_litellm.client_session = MagicMock()
+        mock_litellm.aclient_session = MagicMock()
+
+        import sys
+        with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+            tls._clear_litellm_client_cache()
+
+        mock_cache.flush_cache.assert_called_once()
+
+    def test_clears_module_level_client(self):
+        """module_level_client is a singleton HTTPHandler that also embeds
+        an httpx client.  It must be set to None."""
+        from python.helpers import tls
+
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = MagicMock()
+        mock_litellm.module_level_client = "stale_client"
+        mock_litellm.module_level_aclient = "stale_aclient"
+        mock_litellm.client_session = None
+        mock_litellm.aclient_session = None
+
+        import sys
+        with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+            tls._clear_litellm_client_cache()
+
+        assert mock_litellm.module_level_client is None
+        assert mock_litellm.module_level_aclient is None
+
+    def test_clears_session_overrides(self):
+        """client_session and aclient_session override _get_*_http_client()
+        return values.  They must be cleared."""
+        from python.helpers import tls
+
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = MagicMock()
+        mock_litellm.module_level_client = None
+        mock_litellm.module_level_aclient = None
+        mock_litellm.client_session = "stale_session"
+        mock_litellm.aclient_session = "stale_async_session"
+
+        import sys
+        with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+            tls._clear_litellm_client_cache()
+
+        assert mock_litellm.client_session is None
+        assert mock_litellm.aclient_session is None
+
+    def test_handles_missing_cache_attribute_gracefully(self):
+        """If in_memory_llm_clients_cache doesn't exist (older litellm),
+        the function should not raise."""
+        from python.helpers import tls
+
+        mock_litellm = MagicMock(spec=[])  # No attributes at all
+
+        import sys
+        with patch.dict(sys.modules, {"litellm": mock_litellm}):
+            # Should not raise
+            tls._clear_litellm_client_cache()
+
+    def test_handles_litellm_not_installed(self):
+        """If litellm is not importable, the function should silently pass."""
+        from python.helpers import tls
+        import sys
+
+        # Temporarily make litellm unimportable
+        real_import = __builtins__.__import__ if hasattr(__builtins__, '__import__') else __import__
+        def _mock_import(name, *args, **kwargs):
+            if name == "litellm" or name.startswith("litellm."):
+                raise ImportError("mocked")
+            return real_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=_mock_import):
+            # Should not raise
+            tls._clear_litellm_client_cache()
+
+
+# ---------------------------------------------------------------------------
+# Full pipeline: apply_env_vars sets litellm.ssl_verify + clears cache
+# ---------------------------------------------------------------------------
+
+class TestApplyEnvVarsLitellmIntegration:
+    def test_sets_litellm_ssl_verify_false(self):
+        """apply_env_vars must set litellm.ssl_verify = False when disabled."""
+        from python.helpers import tls
+
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = MagicMock()
+        mock_litellm.module_level_client = None
+        mock_litellm.module_level_aclient = None
+        mock_litellm.client_session = None
+        mock_litellm.aclient_session = None
+
+        import sys
+        with patch("python.helpers.settings.get_settings", return_value=_settings(False)):
+            with patch.object(tls, "_update_system_ca_store"):
+                with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+                    tls.apply_env_vars()
+
+        assert mock_litellm.ssl_verify is False
+        mock_litellm.in_memory_llm_clients_cache.flush_cache.assert_called_once()
+
+    def test_sets_litellm_ssl_verify_to_bundle_path(self, tmp_path):
+        """apply_env_vars must set litellm.ssl_verify to the CA bundle path."""
+        from python.helpers import tls
+
+        bundle = str(tmp_path / "ca.pem")
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = MagicMock()
+        mock_litellm.module_level_client = None
+        mock_litellm.module_level_aclient = None
+        mock_litellm.client_session = None
+        mock_litellm.aclient_session = None
+
+        import sys
+        with patch("python.helpers.settings.get_settings", return_value=_settings(True, bundle)):
+            with patch.object(tls, "_update_system_ca_store"):
+                with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+                    tls.apply_env_vars()
+
+        assert mock_litellm.ssl_verify == bundle
+        mock_litellm.in_memory_llm_clients_cache.flush_cache.assert_called_once()
+
+    def test_sets_litellm_ssl_verify_true_for_default(self):
+        """apply_env_vars must set litellm.ssl_verify = True for default."""
+        from python.helpers import tls
+
+        mock_litellm = MagicMock()
+        mock_litellm.in_memory_llm_clients_cache = MagicMock()
+        mock_litellm.module_level_client = None
+        mock_litellm.module_level_aclient = None
+        mock_litellm.client_session = None
+        mock_litellm.aclient_session = None
+
+        import sys
+        with patch("python.helpers.settings.get_settings", return_value=_settings(True, "")):
+            with patch.object(tls, "_update_system_ca_store"):
+                with patch.dict(sys.modules, {"litellm": mock_litellm, "litellm.utils": MagicMock()}):
+                    tls.apply_env_vars()
+
+        assert mock_litellm.ssl_verify is True
+        mock_litellm.in_memory_llm_clients_cache.flush_cache.assert_called_once()
