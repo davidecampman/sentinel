@@ -7,8 +7,18 @@ echo "====================BASE PACKAGES3 START===================="
 # outdated distro package. This fixes CVEs in Node 22.14.0 (CVE-2025-55130,
 # CVE-2025-59465/59466, CVE-2025-23166, CVE-2026-21637, CVE-2025-55131) and ensures
 # bundled packages (undici, tar, minimatch, etc.) are at patched versions.
+#
+# We use the 'nodistro' target instead of the auto-detect setup_22.x script because
+# Ubuntu 25.10 (Questing Quokka) is not yet recognised by the NodeSource distro
+# detection logic, causing the setup script to exit with code 1 (especially under
+# QEMU for the linux/arm64 build).
+NODE_MAJOR=22
 apt-get install -y --no-install-recommends ca-certificates curl gnupg
-curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+    | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
+    | tee /etc/apt/sources.list.d/nodesource.list
+apt-get update
 apt-get install -y --no-install-recommends nodejs
 
 echo "====================BASE PACKAGES3 NPM===================="
