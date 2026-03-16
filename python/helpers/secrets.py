@@ -174,7 +174,13 @@ class SecretsManager:
         files.write_file(self._files[0], content)
 
     def load_secrets(self) -> Dict[str, str]:
-        """Load secrets from file, return key-value dict"""
+        """Load secrets from file, return key-value dict.
+
+        After parsing the env file, any value that begins with ``op://`` is
+        resolved via the 1Password CLI (when the integration is enabled in
+        settings).  If mirror mode is configured a dedicated vault item is
+        fetched and its fields are merged on top.
+        """
         with self._lock:
             if self._secrets_cache is not None:
                 return self._secrets_cache
@@ -188,8 +194,77 @@ class SecretsManager:
             if len(self._files) != 1:
                 self._last_raw_text = None
 
+            merged_secrets = self._resolve_op_references(merged_secrets)
+            merged_secrets = self._merge_op_mirror(merged_secrets)
+
             self._secrets_cache = merged_secrets
             return merged_secrets
+
+    def _resolve_op_references(self, secrets: Dict[str, str]) -> Dict[str, str]:
+        """Replace any ``op://`` reference values with their plaintext secrets."""
+        from python.helpers.onepassword import OP_REFERENCE_PREFIX, OnePasswordError, get_provider
+
+        has_refs = any(v.startswith(OP_REFERENCE_PREFIX) for v in secrets.values())
+        if not has_refs:
+            return secrets
+
+        try:
+            provider = get_provider()
+            if not provider.is_available():
+                return secrets
+        except Exception:
+            return secrets
+
+        resolved = dict(secrets)
+        for key, value in secrets.items():
+            if not value.startswith(OP_REFERENCE_PREFIX):
+                continue
+            try:
+                resolved[key] = provider.read(value)
+            except OnePasswordError as exc:
+                raise RepairableException(
+                    f"Failed to resolve 1Password reference for secret '{key}' "
+                    f"({value}): {exc}"
+                ) from exc
+        return resolved
+
+    def _merge_op_mirror(self, secrets: Dict[str, str]) -> Dict[str, str]:
+        """Fetch a dedicated 1Password item and merge its fields into secrets.
+
+        Mirror mode is enabled when ``op_enabled`` is True and ``op_mirror_vault``
+        is non-empty in Sentinel settings.  Fields from 1Password take precedence
+        over local values for the same key.
+        """
+        from python.helpers.onepassword import OnePasswordError, get_provider
+
+        try:
+            from python.helpers import settings as _settings
+            s = _settings.get_settings()
+            if not s.get("op_enabled"):
+                return secrets
+            vault: str = s.get("op_mirror_vault", "")  # type: ignore[assignment]
+            item: str = s.get("op_mirror_item", "Sentinel")  # type: ignore[assignment]
+            if not vault:
+                return secrets
+        except Exception:
+            return secrets
+
+        try:
+            provider = get_provider()
+            if not provider.is_available():
+                return secrets
+            fields = provider.get_item_fields(vault, item)
+        except OnePasswordError as exc:
+            raise RepairableException(
+                f"Failed to fetch 1Password mirror item '{item}' from vault "
+                f"'{vault}': {exc}"
+            ) from exc
+        except Exception:
+            return secrets
+
+        merged = dict(secrets)
+        merged.update(fields)  # 1Password wins on conflict
+        return merged
 
     def save_secrets(self, secrets_content: str):
         """Save secrets content to file and update cache"""

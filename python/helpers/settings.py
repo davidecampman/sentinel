@@ -160,6 +160,12 @@ class Settings(TypedDict):
     tls_verify: bool       # False = skip verification, True = use ca bundle or system certs
     tls_ca_bundle: str     # Absolute path to PEM CA bundle; empty = system/certifi default
 
+    # 1Password integration (CLI / service account)
+    op_enabled: bool
+    op_service_account_token: str  # stored in .env, never in settings.json
+    op_mirror_vault: str           # vault name for mirror mode; empty = mirror disabled
+    op_mirror_item: str            # item name within the mirror vault
+
 
 class PartialSettings(Settings, total=False):
     pass
@@ -318,6 +324,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
     out["settings"]["auth_password"] = (
         PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD) else ""
     )
+    out["settings"]["op_service_account_token"] = (
+        PASSWORD_PLACEHOLDER
+        if dotenv.get_dotenv_value(dotenv.KEY_OP_SERVICE_ACCOUNT_TOKEN)
+        else ""
+    )
     out["settings"]["rfc_password"] = (
         PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD) else ""
     )
@@ -469,6 +480,11 @@ def _load_sensitive_settings(settings: Settings):
     settings["rfc_password"] = dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD) or ""
     settings["root_password"] = dotenv.get_dotenv_value(dotenv.KEY_ROOT_PASSWORD) or ""
 
+    # load 1Password service account token from .env
+    settings["op_service_account_token"] = (
+        dotenv.get_dotenv_value(dotenv.KEY_OP_SERVICE_ACCOUNT_TOKEN) or ""
+    )
+
     # load secrets raw content
     secrets_manager = get_default_secrets_manager()
     try:
@@ -502,6 +518,7 @@ def _remove_sensitive_settings(settings: Settings):
     settings["root_password"] = ""
     settings["mcp_server_token"] = ""
     settings["secrets"] = ""
+    settings["op_service_account_token"] = ""
 
 
 def _write_sensitive_settings(settings: Settings):
@@ -518,6 +535,13 @@ def _write_sensitive_settings(settings: Settings):
         if runtime.is_dockerized():
             dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, settings["root_password"])
             set_root_password(settings["root_password"])
+
+    # Save 1Password service account token to .env (never to settings.json)
+    if settings["op_service_account_token"] != PASSWORD_PLACEHOLDER:
+        dotenv.save_dotenv_value(
+            dotenv.KEY_OP_SERVICE_ACCOUNT_TOKEN,
+            settings["op_service_account_token"],
+        )
 
     # Handle secrets separately - merge with existing preserving comments/order and support deletions
     secrets_manager = get_default_secrets_manager()
@@ -617,6 +641,10 @@ def get_default_settings() -> Settings:
         litellm_global_kwargs=get_default_value("litellm_global_kwargs", {}),
         tls_verify=get_default_value("tls_verify", True),
         tls_ca_bundle=get_default_value("tls_ca_bundle", ""),
+        op_enabled=get_default_value("op_enabled", False),
+        op_service_account_token="",
+        op_mirror_vault=get_default_value("op_mirror_vault", ""),
+        op_mirror_item=get_default_value("op_mirror_item", "Sentinel"),
     )
 
 
