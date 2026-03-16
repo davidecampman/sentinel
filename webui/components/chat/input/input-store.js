@@ -201,6 +201,20 @@ const model = {
     await fileBrowserStore.open(path);
   },
 
+  async runSelfTest() {
+    try {
+      if (globalThis.justToast) globalThis.justToast("Running self-test…", "info", 2000, "self-test");
+      const response = await globalThis.sendJsonData("/self_test", {});
+      if (response && response.ok && response.ctxid) {
+        await chatsStore.selectChat(response.ctxid);
+      } else {
+        if (globalThis.toast) globalThis.toast("Self-test failed to start", "error");
+      }
+    } catch (e) {
+      if (globalThis.toastFetchError) globalThis.toastFetchError("Error running self-test", e);
+    }
+  },
+
   reset() {
     this.message = "";
     attachmentsStore.clearAttachments();

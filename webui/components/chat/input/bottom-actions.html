@@ -54,6 +54,11 @@
             <p>Context</p>
         </button>
 
+        <button class="text-button" id="self_test" @click="$store.chatInput.runSelfTest()" title="Run self-test and open results in a new chat">
+            <span class="material-symbols-outlined">health_and_safety</span>
+            <p>Self Test</p>
+        </button>
+
         <button class="text-button" id="nudges_window" @click="$store.chatInput.nudge()">
             <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 49 58" fill="currentColor">
                 <path d="m11.97,16.32c-.46,0-.91-.25-1.15-.68-.9-1.63-1.36-3.34-1.36-5.1C9.45,4.73,14.18,0,20,0s10.55,4.73,10.55,10.55c0,.87-.13,1.75-.41,2.76-.19.7-.9,1.13-1.62.93-.7-.19-1.12-.92-.93-1.62.21-.79.31-1.44.31-2.07,0-4.36-3.55-7.91-7.91-7.91s-7.91,3.55-7.91,7.91c0,1.3.35,2.59,1.03,3.82.36.64.13,1.44-.51,1.79-.21.11-.42.17-.64.17Z" stroke-width="0.5" stroke="currentColor"/>
