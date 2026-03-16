@@ -227,3 +227,88 @@ class TestGetLitellmKwargs:
         with patch("python.helpers.settings.get_settings", return_value=_settings(True, "")):
             kwargs = tls.get_litellm_kwargs()
             assert kwargs == {}
+
+
+# ---------------------------------------------------------------------------
+# _patch_ssl_defaults()
+# ---------------------------------------------------------------------------
+
+class TestPatchSslDefaults:
+    def test_sets_unverified_context_when_verify_false(self):
+        import ssl
+        from python.helpers import tls
+        original = ssl._create_default_https_context
+        try:
+            tls._patch_ssl_defaults(False)
+            assert ssl._create_default_https_context is ssl._create_unverified_context
+        finally:
+            ssl._create_default_https_context = original
+
+    def test_restores_default_context_when_verify_true(self):
+        import ssl
+        from python.helpers import tls
+        original = ssl._create_default_https_context
+        try:
+            # First disable, then restore
+            tls._patch_ssl_defaults(False)
+            tls._patch_ssl_defaults(True)
+            assert ssl._create_default_https_context is ssl.create_default_context
+        finally:
+            ssl._create_default_https_context = original
+
+    def test_restores_default_context_for_bundle_path(self):
+        import ssl
+        from python.helpers import tls
+        original = ssl._create_default_https_context
+        try:
+            tls._patch_ssl_defaults("/path/ca.pem")
+            # For CA-bundle case we restore to the standard factory (the bundle
+            # is already in the system trust store via _update_system_ca_store).
+            assert ssl._create_default_https_context is ssl.create_default_context
+        finally:
+            ssl._create_default_https_context = original
+
+
+# ---------------------------------------------------------------------------
+# _patch_httpx_defaults()
+# ---------------------------------------------------------------------------
+
+class TestPatchHttpxDefaults:
+    def test_patches_async_client_verify_to_false(self):
+        try:
+            import httpx
+        except ImportError:
+            pytest.skip("httpx not installed")
+        from python.helpers import tls
+        created_with = {}
+
+        orig_init = httpx.AsyncClient.__init__
+        try:
+            tls._patch_httpx_defaults(False)
+            # Capture what verify value a new AsyncClient would receive
+            patched_init = httpx.AsyncClient.__init__
+            def _spy(self, *args, **kwargs):
+                created_with["verify"] = kwargs.get("verify", "NOT_SET")
+                orig_init(self, *args, **kwargs)
+            httpx.AsyncClient.__init__ = _spy
+            try:
+                httpx.AsyncClient()
+            except Exception:
+                pass
+            assert created_with.get("verify") is False
+        finally:
+            # Restore sentinel_orig_init as actual __init__ to clean up
+            if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+                httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+
+    def test_restores_default_when_verify_true(self):
+        try:
+            import httpx
+        except ImportError:
+            pytest.skip("httpx not installed")
+        from python.helpers import tls
+        # Patch then restore
+        tls._patch_httpx_defaults(False)
+        tls._patch_httpx_defaults(True)
+        # After restore, __init__ should be the stored original
+        assert httpx.AsyncClient.__init__ is httpx.AsyncClient._sentinel_orig_init

@@ -918,8 +918,8 @@ class TaskScheduler:
                 PrintStyle.warning(f"Scheduler Task '{current_task.name}' cancelled by user")
                 try:
                     await asyncio.shield(self.update_task(task_uuid, state=TaskState.IDLE))
-                except Exception:
-                    pass
+                except Exception as e:
+                    PrintStyle.warning(f"Failed to reset task '{current_task.name}' state to IDLE after cancellation: {e}")
                 raise
             except Exception as e:
                 # Error
@@ -941,16 +941,16 @@ class TaskScheduler:
                     await asyncio.shield(current_task.on_finish())
                 except asyncio.CancelledError:
                     pass
-                except Exception:
-                    pass
+                except Exception as e:
+                    PrintStyle.warning(f"Task '{current_task.name}' on_finish() cleanup raised an error: {e}")
 
                 # Make one final save to ensure all states are persisted
                 try:
                     await asyncio.shield(self._tasks.save())
                 except asyncio.CancelledError:
                     pass
-                except Exception:
-                    pass
+                except Exception as e:
+                    PrintStyle.error(f"Failed to persist task state after '{current_task.name}' finished: {e}")
 
                 self._unregister_running_task(task_uuid)
 

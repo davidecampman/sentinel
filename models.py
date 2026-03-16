@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 import logging
 import os
+
+logger = logging.getLogger(__name__)
 from typing import (
     Any,
     Awaitable,
@@ -650,8 +652,8 @@ class BrowserCompatibleChatWrapper(ChatOpenRouter):
                     cleaned = browser_use_monkeypatch.gemini_clean_and_conform(msg.content) # type: ignore
                     if cleaned:
                         msg.content = cleaned
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Gemini content cleaning failed (response returned as-is): %s", e)
 
         except Exception as e:
             raise e
@@ -663,7 +665,7 @@ class BrowserCompatibleChatWrapper(ChatOpenRouter):
                     js = dirty_json.parse(resp.choices[0].message.content) # type: ignore
                     resp.choices[0].message.content = dirty_json.stringify(js) # type: ignore
         except Exception as e:
-            pass
+            logger.debug("JSON post-processing of LLM response failed (response returned as-is): %s", e)
 
         return resp
 
@@ -842,8 +844,8 @@ def _adjust_call_args(provider_name: str, model_name: str, kwargs: dict):
     # for openrouter add app reference
     if provider_name == "openrouter":
         kwargs["extra_headers"] = {
-            "HTTP-Referer": "https://agent-zero.ai",
-            "X-Title": "Agent Zero",
+            "HTTP-Referer": "https://sentinel-ai.com",
+            "X-Title": "Sentinel",
         }
 
     # remap other to openai for litellm

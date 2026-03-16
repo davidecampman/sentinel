@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from fnmatch import fnmatch
 import json
+import logging
 from ntpath import isabs
 import os
 import sys
@@ -8,6 +9,8 @@ import re
 import base64
 import shutil
 import tempfile
+
+logger = logging.getLogger(__name__)
 from typing import Any, Literal
 import zipfile
 import importlib
@@ -445,9 +448,9 @@ def delete_dir(relative_path: str):
 
                 # try again after changing permissions
                 shutil.rmtree(abs_path, ignore_errors=True)
-            except:
-                # suppress all errors - we're ensuring no errors propagate
-                pass
+            except Exception as e:
+                # best-effort permission fixup; log so failures aren't invisible
+                logger.warning("Could not change permissions during directory deletion of %s: %s", abs_path, e)
 
 
 def move_dir(old_path: str, new_path: str):
@@ -462,8 +465,8 @@ def move_dir(old_path: str, new_path: str):
     
     try:
         os.rename(abs_old, abs_new)
-    except Exception:
-        pass  # suppress all errors, keep behavior consistent
+    except Exception as e:
+        logger.warning("Could not move directory from %s to %s: %s", abs_old, abs_new, e)
 
 
 # move dir safely, remove with number if needed

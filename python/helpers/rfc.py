@@ -43,7 +43,7 @@ async def call_rfc(
 
 
 # Only modules whose dotted path starts with one of these prefixes may be
-# invoked via RFC. All legitimate callers are internal agent-zero modules.
+# invoked via RFC. All legitimate callers are internal sentinel modules.
 # This blocks calls to os, subprocess, builtins, and third-party packages.
 _ALLOWED_MODULE_PREFIXES = (
     "python.helpers.",
@@ -56,7 +56,7 @@ def _assert_module_allowed(module: str) -> None:
     if not any(module.startswith(prefix) for prefix in _ALLOWED_MODULE_PREFIXES):
         raise Exception(
             f"RFC module '{module}' is not in the allowed prefix list. "
-            "Only internal agent-zero modules may be called via RFC."
+            "Only internal sentinel modules may be called via RFC."
         )
     # Every dotted component must be a valid Python identifier to prevent
     # crafted paths that could bypass import restrictions or cause injection.
