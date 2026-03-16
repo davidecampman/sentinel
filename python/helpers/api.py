@@ -81,7 +81,7 @@ class ApiHandler:
             PrintStyle.error(f"API error: {error}")
             return Response(response=error, status=500, mimetype="text/plain")
 
-    # get context to run agent zero in
+    # get context to run sentinel in
     def use_context(self, ctxid: str, create_if_not_exists: bool = True):
         with self.thread_lock:
             if not ctxid:

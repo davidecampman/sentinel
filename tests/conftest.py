@@ -1,7 +1,7 @@
 """
-conftest.py — Test environment bootstrap for Agent Zero Corporate Edition.
+conftest.py — Test environment bootstrap for Sentinel Corporate Edition.
 
-Agent Zero has several heavyweight dependencies (litellm, openai, simpleeval,
+Sentinel has several heavyweight dependencies (litellm, openai, simpleeval,
 etc.) that are not available in the lightweight /opt/venv used by the test
 runner.  Rather than installing the full production stack, we register
 MagicMock stubs for every module that would otherwise fail to import.
