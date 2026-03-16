@@ -174,6 +174,29 @@ const model = {
     }
   },
 
+  async testOpConnection() {
+    this._opTestStatus = "testing";
+    this._opTestMessage = "";
+    try {
+      const token = this.settings?.op_service_account_token || "";
+      const payload = token && token !== "****PSWD****" ? { token } : {};
+      const response = await API.callJsonApi("settings_op_test", payload);
+      if (response?.ok) {
+        this._opTestStatus = "ok";
+        this._opTestMessage = "Connected successfully.";
+      } else {
+        this._opTestStatus = "error";
+        this._opTestMessage = response?.error || "Connection failed.";
+      }
+    } catch (e) {
+      this._opTestStatus = "error";
+      this._opTestMessage = e.message || "Connection failed.";
+    }
+  },
+
+  _opTestStatus: "",   // "", "testing", "ok", "error"
+  _opTestMessage: "",
+
   async testWorkdirFileStructure() {
     if (!this.settings) return;
     try {
