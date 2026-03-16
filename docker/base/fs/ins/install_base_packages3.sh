@@ -23,17 +23,11 @@ apt-get install -y --no-install-recommends nodejs
 
 echo "====================BASE PACKAGES3 NPM===================="
 
-# Update npm to latest to pick up fixes for bundled deps:
-# tar (CVE-2026-23950/24842/29786/23745/31802/26960), minimatch (CVE-2026-26996/27903/27904),
-# @babel/traverse (CVE-2023-45133), flatted (CVE-2026-32141), glob (CVE-2025-64756),
-# http-cache-semantics (CVE-2022-25881), serialize-javascript (GHSA-5c6j-r48x-rmvq)
-npm install -g npm@latest
-
-# Update all globally installed packages to pick up patched versions of transitive deps:
-# word-wrap (CVE-2023-26115), @babel/runtime-corejs3 (CVE-2025-27789),
-# ajv (CVE-2025-69873), js-yaml (CVE-2025-64718), lodash (CVE-2025-13465)
-npm update -g
-
-# we shall not install npx separately, it's discontinued and some versions are broken
-# npm i -g npx
+# NOTE: do NOT run 'npm install -g npm@latest' or 'npm update -g' here.
+# Node.js 22 has a security check that validates the shebang utility name matches
+# the executable name. Under QEMU (linux/arm64 cross-build) this check fails for
+# npm's #!/usr/bin/env node shebang, producing:
+#   "Security violation: Requested utility `env` does not match executable name"
+# Node 22.22.1 already ships with a sufficiently recent npm (10.x) that includes
+# all relevant CVE fixes, so the extra update step is not needed.
 echo "====================BASE PACKAGES3 END===================="
