@@ -660,7 +660,7 @@ const model = {
 
     // Check Sentinel version compatibility
     // Note: Both backup and current versions are obtained via git.get_git_info()
-    const backupVersion = this.backupMetadata.agent_zero_version;
+    const backupVersion = this.backupMetadata.sentinel_version ?? this.backupMetadata.agent_zero_version;
     const currentVersion = globalThis.gitinfo?.version ?? "Sentinel"; // Sentinel: safe access
 
     if (backupVersion !== currentVersion && backupVersion !== "development") {

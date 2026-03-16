@@ -1,11 +1,11 @@
 """
-Centralized TLS/SSL configuration for Agent Zero Corporate Edition.
+Centralized TLS/SSL configuration for Sentinel Corporate Edition.
 
 All HTTP clients (aiohttp, httpx, requests, IMAPClient, Playwright) should
 obtain their SSL/verify parameters from this module so that a single setting
 controls certificate verification across the entire application.
 
-Settings controlled via the Agent Zero UI (Settings → Network → TLS):
+Settings controlled via the Sentinel UI (Settings → Network → TLS):
   tls_verify    bool  – When False, all certificate verification is disabled.
                         When True, the CA bundle (or system certs) is used.
   tls_ca_bundle str   – Absolute path to a PEM CA bundle file.  Leave empty
