@@ -24,7 +24,8 @@ markdown==3.8.1
 mcp==1.26.0
 newspaper3k==0.2.8
 paramiko==3.5.0
-playwright==1.52.0
+# Security: CVE-2025-55130 in playwright <1.58.0 (bundles Node.js <22.22.0/<24.13.0, path traversal via fs permission bypass); fixed by upgrading to Node.js 24.13.0 (bundled in playwright 1.58.0)
+playwright==1.58.0
 pypdf==6.8.0
 python-dotenv==1.1.0
 pytz==2024.2

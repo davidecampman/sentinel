@@ -72,4 +72,9 @@ curl -Ls https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh
 # clean up pip cache
 pip cache purge
 
+# Security: CVE-2026-23949 in jaraco.context <6.1.0 (path traversal via tarball()); fixed in 6.1.0
+# Ubuntu 25.10 ships 6.0.1 as a system package; upgrade it with --break-system-packages
+# to patch the system Python installation (venv installations are already covered by requirements.txt)
+pip3 install --break-system-packages "jaraco.context>=6.1.0"
+
 echo "====================PYTHON END===================="
