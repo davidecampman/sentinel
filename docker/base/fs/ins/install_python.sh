@@ -32,15 +32,30 @@ apt-get install -y --no-install-recommends \
     libncursesw5-dev xz-utils tk-dev libxml2-dev \
     libxmlsec1-dev libffi-dev liblzma-dev
 
-# Install Python 3.12 directly from the Ubuntu 25.10 universe repo instead of via pyenv.
+# Build Python 3.12.4 from source.
 #
-# pyenv uses #!/usr/bin/env shebang scripts (pyenv init --path, shims, etc.). Under QEMU
-# (linux/arm64 buildx cross-compilation) Node.js 22's process-name security check fires
-# for any #!/usr/bin/env <name> invocation where the resolved executable path doesn't
-# match the requested utility name, exiting with code 1.
-# Ubuntu 25.10 ships python3.12 alongside the default python3.13 in the universe repo,
-# so we can install it directly without pyenv.
-apt-get install -y --no-install-recommends python3.12 python3.12-venv
+# python3.12 is NOT in the Ubuntu 25.10 (questing) repos — the distro ships only 3.13.
+# pyenv was the previous approach, but its scripts use #!/usr/bin/env shebangs that
+# trigger a Node.js 22 security check under QEMU arm64 cross-compilation.
+# Building from source uses only standard UNIX tools (wget, ./configure, make) which
+# have no such shebang issues.
+# --enable-optimizations is intentionally omitted: it runs the full test suite via
+# QEMU which is extremely slow and unreliable in a cross-build environment.
+PYTHON_VERSION=3.12.4
+mkdir -p /tmp/python-src
+cd /tmp/python-src
+wget -q "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
+tar xzf "Python-${PYTHON_VERSION}.tgz"
+cd "Python-${PYTHON_VERSION}"
+./configure \
+    --prefix=/usr/local \
+    --enable-shared \
+    --with-ensurepip=install \
+    LDFLAGS="-Wl,-rpath /usr/local/lib"
+make -j"$(nproc)"
+make altinstall
+cd /
+rm -rf /tmp/python-src
 
 echo "====================PYTHON 3.12 VENV===================="
 
