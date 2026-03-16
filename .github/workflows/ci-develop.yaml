@@ -1,13 +1,16 @@
 name: CI Develop
 
 on:
-  push:
+  pull_request:
     branches:
       - develop
+    types:
+      - closed
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
