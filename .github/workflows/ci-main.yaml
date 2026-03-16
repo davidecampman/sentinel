@@ -25,6 +25,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./docker/run
+          file: docker/run/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USER }}/sentinel:latest
+          build-args: |
+            BRANCH=main
