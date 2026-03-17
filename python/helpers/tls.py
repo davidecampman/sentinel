@@ -251,7 +251,7 @@ def _clear_litellm_client_cache() -> None:
     We intentionally cast a wide net across known caching locations in both
     litellm and the openai SDK, since a missed cache means stale SSL settings.
     """
-    # ── Helper: null-out any matching attrs on a module/object ────────────
+    # ── Helper: null-out simple client attrs on a module/object ────────────
     def _clear_attrs(obj: object, attrs: tuple) -> None:
         for attr in attrs:
             try:
@@ -259,6 +259,30 @@ def _clear_litellm_client_cache() -> None:
                     setattr(obj, attr, None)
             except Exception:
                 pass
+
+    # ── Helper: flush cache objects that must NOT be set to None ──────────
+    def _flush_cache(obj: object, attr: str) -> None:
+        """Clear a litellm cache object without destroying it.
+
+        litellm.in_memory_llm_clients_cache (and similar) are cache instances
+        whose .get_cache() / .set_cache() methods are called throughout the
+        litellm codebase.  Setting them to None causes AttributeError.
+        Instead we flush their internal state so stale httpx clients are
+        discarded and recreated with the new SSL settings.
+        """
+        try:
+            cache = getattr(obj, attr, None)
+            if cache is None:
+                return
+            # LLMClientCache / InMemoryCache expose flush_cache()
+            if hasattr(cache, "flush_cache"):
+                cache.flush_cache()
+            elif hasattr(cache, "cache") and isinstance(cache.cache, dict):
+                cache.cache.clear()
+            elif isinstance(cache, dict):
+                cache.clear()
+        except Exception:
+            pass
 
     # ── 1. litellm module-level client attributes ─────────────────────────
     _ll_client_attrs = (
@@ -268,19 +292,25 @@ def _clear_litellm_client_cache() -> None:
         "client_session",
         "aclient",
         "client",
-        # Caches added in newer litellm versions
-        "in_memory_llm_clients_cache",
         "_openai_clients",
+    )
+    # Cache objects that must be flushed, NOT set to None
+    _ll_cache_attrs = (
+        "in_memory_llm_clients_cache",
     )
 
     try:
         import litellm as _ll  # type: ignore
         _clear_attrs(_ll, _ll_client_attrs)
+        for _cache_attr in _ll_cache_attrs:
+            _flush_cache(_ll, _cache_attr)
 
         # litellm.utils often mirrors the same caches
         try:
             import litellm.utils as _ll_utils  # type: ignore
             _clear_attrs(_ll_utils, _ll_client_attrs)
+            for _cache_attr in _ll_cache_attrs:
+                _flush_cache(_ll_utils, _cache_attr)
         except Exception:
             pass
 
