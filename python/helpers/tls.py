@@ -148,28 +148,42 @@ def get_litellm_kwargs() -> dict:
 
 def _patch_ssl_defaults(verify: Union[bool, str]) -> None:
     """
-    Patch ssl._create_default_https_context so every new ssl context inherits
-    the configured TLS verification mode.
+    Patch ssl.create_default_context (and the internal _create_default_https_context)
+    so every new ssl context inherits the configured TLS verification mode.
 
-    This is the most reliable way to make libraries that create their own ssl
-    contexts (httpx, aiohttp, botocore, etc.) respect our TLS settings, even
-    when they don't honour environment variables or per-call kwargs.
+    Most third-party libraries (httpx, aiohttp, botocore, requests/urllib3) call
+    ssl.create_default_context() directly — NOT _create_default_https_context.
+    We must patch *both* to reliably disable verification everywhere.
 
     Called by apply_env_vars() after the standard env-var setup.
     """
     import ssl as _ssl_mod
 
+    # Store the real original once so we can restore it later.
+    if not hasattr(_ssl_mod, "_sentinel_orig_create_default_context"):
+        _ssl_mod._sentinel_orig_create_default_context = _ssl_mod.create_default_context  # type: ignore[attr-defined]
+
     if verify is False:
         # Unverified context – disables certificate verification globally for
-        # all new ssl contexts created via ssl.create_default_context() or
-        # ssl._create_default_https_context().
+        # all new ssl contexts regardless of how they are created.
         _ssl_mod._create_default_https_context = _ssl_mod._create_unverified_context
+
+        _orig = _ssl_mod._sentinel_orig_create_default_context  # type: ignore[attr-defined]
+
+        def _unverified_create_default_context(*args, **kwargs):
+            ctx = _orig(*args, **kwargs)
+            ctx.check_hostname = False
+            ctx.verify_mode = _ssl_mod.CERT_NONE
+            return ctx
+
+        _ssl_mod.create_default_context = _unverified_create_default_context  # type: ignore[assignment]
     else:
-        # Restore the standard default (system certs / certifi).  The CA-bundle
+        # Restore the standard defaults (system certs / certifi).  The CA-bundle
         # case is already handled via SSL_CERT_FILE + _update_system_ca_store(),
         # so ssl.create_default_context() will automatically load the bundle
         # from the system trust store.
-        _ssl_mod._create_default_https_context = _ssl_mod.create_default_context
+        _ssl_mod._create_default_https_context = _ssl_mod._sentinel_orig_create_default_context  # type: ignore[attr-defined]
+        _ssl_mod.create_default_context = _ssl_mod._sentinel_orig_create_default_context  # type: ignore[attr-defined]
 
 
 def _patch_httpx_defaults(verify: Union[bool, str]) -> None:
@@ -207,11 +221,15 @@ def _patch_httpx_defaults(verify: Union[bool, str]) -> None:
             _orig_sync = _httpx.Client._sentinel_orig_init
 
             def _patched_async_init(self, *args, **kwargs):  # type: ignore[misc]
-                kwargs.setdefault("verify", _verify)
+                # Force-override verify: callers (e.g. the OpenAI SDK) may pass
+                # an explicit verify=True or verify=<SSLContext> that would defeat
+                # a mere setdefault().  When the global TLS switch is off we must
+                # win unconditionally.
+                kwargs["verify"] = _verify
                 _orig_async(self, *args, **kwargs)
 
             def _patched_sync_init(self, *args, **kwargs):  # type: ignore[misc]
-                kwargs.setdefault("verify", _verify)
+                kwargs["verify"] = _verify
                 _orig_sync(self, *args, **kwargs)
 
             _httpx.AsyncClient.__init__ = _patched_async_init
@@ -230,36 +248,76 @@ def _clear_litellm_client_cache() -> None:
     and httpx defaults only take effect for clients created *after* this call.
 
     This is best-effort: attribute names differ across litellm versions.
+    We intentionally cast a wide net across known caching locations in both
+    litellm and the openai SDK, since a missed cache means stale SSL settings.
     """
+    # ── Helper: null-out any matching attrs on a module/object ────────────
+    def _clear_attrs(obj: object, attrs: tuple) -> None:
+        for attr in attrs:
+            try:
+                if hasattr(obj, attr) and getattr(obj, attr) is not None:
+                    setattr(obj, attr, None)
+            except Exception:
+                pass
+
+    # ── 1. litellm module-level client attributes ─────────────────────────
+    _ll_client_attrs = (
+        # Names seen across litellm v1.0 – v1.79.x
+        "_async_openai_client",
+        "_openai_client",
+        "client_session",
+        "aclient",
+        "client",
+        # Caches added in newer litellm versions
+        "in_memory_llm_clients_cache",
+        "_openai_clients",
+    )
+
     try:
         import litellm as _ll  # type: ignore
+        _clear_attrs(_ll, _ll_client_attrs)
 
-        # Module-level client attributes seen across litellm v1.x versions.
-        for _attr in (
-            "_async_openai_client",
-            "_openai_client",
-            "client_session",
-            "aclient",
-            "client",
-        ):
-            if hasattr(_ll, _attr) and getattr(_ll, _attr) is not None:
-                try:
-                    setattr(_ll, _attr, None)
-                except Exception:
-                    pass
-
-        # Also clear any provider-level caches in litellm.utils if present.
+        # litellm.utils often mirrors the same caches
         try:
             import litellm.utils as _ll_utils  # type: ignore
-
-            for _attr in ("_async_openai_client", "_openai_client"):
-                if hasattr(_ll_utils, _attr) and getattr(_ll_utils, _attr) is not None:
-                    try:
-                        setattr(_ll_utils, _attr, None)
-                    except Exception:
-                        pass
+            _clear_attrs(_ll_utils, _ll_client_attrs)
         except Exception:
             pass
+
+        # litellm.llms.openai.openai houses the OpenAI chat completion handler
+        # which caches async/sync OpenAI client instances.
+        try:
+            import litellm.llms.openai.openai as _ll_openai  # type: ignore
+            _clear_attrs(_ll_openai, _ll_client_attrs)
+        except Exception:
+            pass
+
+        # litellm.main may also hold client references
+        try:
+            import litellm.main as _ll_main  # type: ignore
+            _clear_attrs(_ll_main, _ll_client_attrs)
+        except Exception:
+            pass
+
+        # If litellm has an InMemoryCache, clear it entirely so that any
+        # provider-level client caches are evicted.
+        try:
+            cache = getattr(_ll, "cache", None) or getattr(_ll, "in_memory_cache", None)
+            if cache is not None:
+                flush = getattr(cache, "flush_cache", None) or getattr(cache, "flush", None) or getattr(cache, "clear", None)
+                if callable(flush):
+                    flush()
+        except Exception:
+            pass
+
+    except ImportError:
+        pass
+
+    # ── 2. openai SDK global default clients ──────────────────────────────
+    # The openai>=1.0 SDK may cache a module-level default client.
+    try:
+        import openai as _oai  # type: ignore
+        _clear_attrs(_oai, ("_client", "_async_client", "_default_client", "_default_async_client"))
     except Exception:
         pass
 
@@ -436,6 +494,9 @@ def apply_env_vars() -> None:
                 "unset SSL_CERT_FILE",
                 "unset NODE_EXTRA_CA_CERTS",
                 "unset AWS_CA_BUNDLE",
+                # Signal to the SearXNG launch script that SSL verification must
+                # be disabled at the Python level (env vars alone cannot do this).
+                "export A0_TLS_VERIFY=0",
             ]
         elif isinstance(verify, str):
             lines = [
@@ -445,6 +506,7 @@ def apply_env_vars() -> None:
                 f"export NODE_EXTRA_CA_CERTS={verify}",
                 f"export AWS_CA_BUNDLE={verify}",
                 "unset PYTHONHTTPSVERIFY",
+                "export A0_TLS_VERIFY=1",
             ]
         else:
             lines = [
@@ -454,9 +516,35 @@ def apply_env_vars() -> None:
                 "unset CURL_CA_BUNDLE",
                 "unset NODE_EXTRA_CA_CERTS",
                 "unset AWS_CA_BUNDLE",
+                "export A0_TLS_VERIFY=1",
             ]
         with open(env_path, "w") as _f:
             _f.write("\n".join(lines) + "\n")
         os.chmod(env_path, 0o644)
+
+        # Write a sitecustomize.py that Python auto-imports at startup.
+        # When A0_TLS_VERIFY=0, this patches ssl.create_default_context()
+        # so that EVERY new SSL context (aiohttp, requests, httpx) in
+        # SearXNG's process skips certificate verification.  Env vars alone
+        # cannot disable SSL in a separate Python process.
+        site_dir = _files.get_abs_path("usr/searxng_site")
+        os.makedirs(site_dir, exist_ok=True)
+        sitecustomize_path = os.path.join(site_dir, "sitecustomize.py")
+        sitecustomize_content = (
+            '"""Auto-generated by Sentinel TLS helper — do not edit."""\n'
+            "import os as _os, ssl as _ssl\n"
+            'if _os.environ.get("A0_TLS_VERIFY") == "0":\n'
+            "    _ssl._create_default_https_context = _ssl._create_unverified_context\n"
+            "    _orig_create = _ssl.create_default_context\n"
+            "    def _unverified_default(*args, **kwargs):\n"
+            "        ctx = _orig_create(*args, **kwargs)\n"
+            "        ctx.check_hostname = False\n"
+            "        ctx.verify_mode = _ssl.CERT_NONE\n"
+            "        return ctx\n"
+            "    _ssl.create_default_context = _unverified_default\n"
+        )
+        with open(sitecustomize_path, "w") as _f:
+            _f.write(sitecustomize_content)
+        os.chmod(sitecustomize_path, 0o644)
     except Exception as e:
         logger.warning("Could not write TLS environment file: %s", e)

@@ -237,36 +237,53 @@ class TestPatchSslDefaults:
     def test_sets_unverified_context_when_verify_false(self):
         import ssl
         from python.helpers import tls
-        original = ssl._create_default_https_context
+        orig_internal = ssl._create_default_https_context
+        orig_public = ssl.create_default_context
         try:
             tls._patch_ssl_defaults(False)
             assert ssl._create_default_https_context is ssl._create_unverified_context
+            # ssl.create_default_context must also be patched so that
+            # third-party libraries (httpx, aiohttp, botocore) that call it
+            # directly also get unverified contexts.
+            ctx = ssl.create_default_context()
+            assert ctx.check_hostname is False
+            assert ctx.verify_mode == ssl.CERT_NONE
         finally:
-            ssl._create_default_https_context = original
+            ssl._create_default_https_context = orig_internal
+            ssl.create_default_context = orig_public
 
     def test_restores_default_context_when_verify_true(self):
         import ssl
         from python.helpers import tls
-        original = ssl._create_default_https_context
+        orig_internal = ssl._create_default_https_context
+        orig_public = ssl.create_default_context
         try:
             # First disable, then restore
             tls._patch_ssl_defaults(False)
             tls._patch_ssl_defaults(True)
-            assert ssl._create_default_https_context is ssl.create_default_context
+            # Both should be restored to the real original
+            stored_orig = ssl._sentinel_orig_create_default_context
+            assert ssl._create_default_https_context is stored_orig
+            assert ssl.create_default_context is stored_orig
         finally:
-            ssl._create_default_https_context = original
+            ssl._create_default_https_context = orig_internal
+            ssl.create_default_context = orig_public
 
     def test_restores_default_context_for_bundle_path(self):
         import ssl
         from python.helpers import tls
-        original = ssl._create_default_https_context
+        orig_internal = ssl._create_default_https_context
+        orig_public = ssl.create_default_context
         try:
             tls._patch_ssl_defaults("/path/ca.pem")
             # For CA-bundle case we restore to the standard factory (the bundle
             # is already in the system trust store via _update_system_ca_store).
-            assert ssl._create_default_https_context is ssl.create_default_context
+            stored_orig = ssl._sentinel_orig_create_default_context
+            assert ssl._create_default_https_context is stored_orig
+            assert ssl.create_default_context is stored_orig
         finally:
-            ssl._create_default_https_context = original
+            ssl._create_default_https_context = orig_internal
+            ssl.create_default_context = orig_public
 
 
 # ---------------------------------------------------------------------------
@@ -298,6 +315,34 @@ class TestPatchHttpxDefaults:
             assert created_with.get("verify") is False
         finally:
             # Restore sentinel_orig_init as actual __init__ to clean up
+            if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
+                httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
+
+    def test_force_overrides_explicit_verify_true(self):
+        """When the global TLS switch is off, even callers passing verify=True
+        explicitly must be overridden to False."""
+        try:
+            import httpx
+        except ImportError:
+            pytest.skip("httpx not installed")
+        from python.helpers import tls
+        created_with = {}
+
+        orig_init = httpx.AsyncClient.__init__
+        try:
+            tls._patch_httpx_defaults(False)
+            patched_init = httpx.AsyncClient.__init__
+            def _spy(self, *args, **kwargs):
+                created_with["verify"] = kwargs.get("verify", "NOT_SET")
+                orig_init(self, *args, **kwargs)
+            httpx.AsyncClient.__init__ = _spy
+            try:
+                # Caller explicitly passes verify=True — our patch must override
+                httpx.AsyncClient(verify=True)
+            except Exception:
+                pass
+            assert created_with.get("verify") is False
+        finally:
             if hasattr(httpx.AsyncClient, "_sentinel_orig_init"):
                 httpx.AsyncClient.__init__ = httpx.AsyncClient._sentinel_orig_init
 
