@@ -24,7 +24,7 @@ jobs:
         with:
           version: "lab:latest"
           driver: cloud
-          endpoint: "${{ secrets.DOCKER_USER }}/default"
+          endpoint: "decdevelopment/main"
 
       - name: Build and push base
         uses: docker/build-push-action@v5
@@ -53,7 +53,7 @@ jobs:
         with:
           version: "lab:latest"
           driver: cloud
-          endpoint: "${{ secrets.DOCKER_USER }}/default"
+          endpoint: "decdevelopment/main"
 
       - name: Build and push
         uses: docker/build-push-action@v5
