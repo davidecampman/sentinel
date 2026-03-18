@@ -13,7 +13,7 @@ This guide consolidates everything you need to design, implement, and troublesho
 5. [Frontend Cookbook (websocket.js)](#frontend-cookbook-websocketjs)
 6. [Producer & Consumer Patterns](#producer--consumer-patterns)
 7. [Metadata Flow & Envelopes](#metadata-flow--envelopes)
-8. [Diagnostics, Harness & Logging](#diagnostics-harness--logging)
+8. [Diagnostics & Logging](#diagnostics--logging)
 9. [Best Practices Checklist](#best-practices-checklist)
 10. [Quick Reference Tables](#quick-reference-tables)
 11. [Further Reading](#further-reading)
@@ -28,7 +28,7 @@ This guide consolidates everything you need to design, implement, and troublesho
 - **`python/helpers/websocket_manager.py`** – orchestrates routing, buffering, aggregation, metadata envelopes, and session tracking. Think of it as the “switchboard” for every WebSocket event.
 - **`python/helpers/websocket.py`** – base class for application handlers. Provides lifecycle hooks, helper methods (`emit_to`, `broadcast`, `request`, `request_all`) and identifier metadata.
 - **`webui/js/websocket.js`** – frontend singleton exposing a minimal client API (`emit`, `request`, `on`, `off`) with lazy connection management and development-only logging (no client-side `broadcast()` or `requestAll()` helpers).
-- **Developer Harness (`webui/components/settings/developer/websocket-test-store.js`)** – manual and automatic validation suite for emit/request flows, timeout behaviour (including the default unlimited wait), correlation ID propagation, envelope metadata, subscription persistence across reconnect, and development-mode diagnostics.
+- **Event Console (`webui/components/settings/developer/websocket-event-console-store.js`)** – real-time inspection of inbound and outbound WebSocket envelopes and lifecycle events (development mode only).
 - **Specs & Contracts** – canonical definitions live under `specs/003-websocket-event-handlers/`. This guide references those documents but focuses on applied usage.
 
 ---
@@ -263,7 +263,7 @@ const websocket = getNamespacedClient("/"); // reserved root (diagnostics-only b
 // Optional: await the handshake if you need to block UI until the socket is ready
 await websocket.connect();
 
-// Runtime metadata is exposed globally for Alpine stores / harness
+// Runtime metadata is exposed globally for Alpine stores
 console.log(window.runtimeInfo.id, window.runtimeInfo.isDevelopment);
 ```
 
@@ -566,15 +566,7 @@ The manager validates the payload, resolves/creates `correlationId`, and passes 
 
 ---
 
-## Diagnostics, Harness & Logging
-
-### Developer Harness
-
-- Location: `Settings → Developer → WebSocket Test Harness`.
-- Automatic mode drives emit, request, delayed request (default unlimited timeout), subscription persistence, and envelope validation. It asserts envelope metadata (handlerId, eventId, correlationId, ISO8601 timestamps) and correlation carryover.
-- Manual buttons let you trigger individual flows and inspect recent payloads.
-- Harness hides itself when `runtime.isDevelopment` is false so production builds incur zero overhead.
-- Helper APIs (`createCorrelationId`, `validateServerEnvelope`) are exercised end to end; subscription logs record the `server_restart` broadcast emitted on first connection after a runtime restart.
+## Diagnostics & Logging
 
 ### WebSocket Event Console
 
@@ -622,7 +614,6 @@ The manager validates the payload, resolves/creates `correlationId`, and passes 
 - [ ] Respect the 50 MB payload cap; prefer HTTP + polling for bulk data transfers.
 - [ ] Ensure long-running operations emit progress via `emit_to` or switch to an async task with periodic updates.
 - [ ] Buffer-sensitive actions (`emit_to`) should handle `ConnectionNotFoundError` from unknown SIDs gracefully.
-- [ ] When adding new handlers, update the developer harness if new scenarios need coverage.
 - [ ] Keep `PrintStyle` logs meaningful—include `handlerId`, `eventType`, `sid`, and `correlationId`.
 - [ ] In Alpine components, call `websocket.off()` during teardown to avoid duplicate subscriptions.
 
@@ -661,7 +652,7 @@ The manager validates the payload, resolves/creates `correlationId`, and passes 
   - [`frontend-api.md`](../specs/003-websocket-event-handlers/contracts/frontend-api.md)
   - [`event-schemas.md`](../specs/003-websocket-event-handlers/contracts/event-schemas.md)
   - [`security-contract.md`](../specs/003-websocket-event-handlers/contracts/security-contract.md)
-- **Implementation Reference** – Inspect `python/helpers/websocket_manager.py`, `python/helpers/websocket.py`, `webui/js/websocket.js`, and the developer harness in `webui/components/settings/developer/websocket-test-store.js` for concrete examples.
+- **Implementation Reference** – Inspect `python/helpers/websocket_manager.py`, `python/helpers/websocket.py`, and `webui/js/websocket.js` for concrete examples.
 
 > **Tip:** When extending the infrastructure (new metadata) start by updating the contracts, sync the manager/frontend helpers, and then document the change here so producers and consumers stay in lockstep.
 
@@ -674,7 +665,7 @@ The WebSocket stack standardizes backend error codes returned in `RequestResultI
 | `NO_HANDLERS` | Manager routing | No handler is registered for the requested `eventType`. | Register a handler for the event or correct the event name. | `{ "handlerId": "WebSocketManager", "ok": false, "error": { "code": "NO_HANDLERS", "error": "No handler for 'missing'" } }` |
 | `TIMEOUT` | Aggregated or single request | The request exceeded `timeoutMs`. | Increase `timeoutMs`, reduce handler processing time, or split work. | `{ "handlerId": "ExampleHandler", "ok": false, "error": { "code": "TIMEOUT", "error": "Request timeout" } }` |
 | `CONNECTION_NOT_FOUND` | Single‑sid request | Target `sid` is not connected/known. | Use an active `sid` or retry after reconnect. | `{ "handlerId": "WebSocketManager", "ok": false, "error": { "code": "CONNECTION_NOT_FOUND", "error": "Connection 'sid-123' not found" } }` |
-| `HARNESS_UNKNOWN_EVENT` | Developer harness | Harness test handler received an unsupported event name. | Update harness sources or disable the step before running automation. | `{ "handlerId": "python.websocket_handlers.dev_websocket_test_handler.DevWebsocketTestHandler", "ok": false, "error": { "code": "HARNESS_UNKNOWN_EVENT", "error": "Unhandled event", "details": "ws_tester_foo" } }` |
+| `UNKNOWN_EVENT` | Dev handler | Dev handler received an unsupported event name. | Verify the event name is correct. | `{ "handlerId": "python.websocket_handlers.dev_websocket_test_handler.DevWebsocketTestHandler", "ok": false, "error": { "code": "UNKNOWN_EVENT", "error": "Unhandled event", "details": "some_event" } }` |
 
 Notes
 - Error payload shape follows the contract documented in `contracts/event-schemas.md` (`RequestResultItem.error`).
@@ -719,7 +710,7 @@ Remaining work (tracked in Phase 6 tasks)
 - T148: Ensure the registry is complete and cross‑referenced from comments/docstrings (backend) and JSDoc typedefs (frontend). No new linter/tooling.
 - T144: Reference the registry from contracts and quickstart examples; align all examples to documented codes.
 - T141/T143: Add/adjust tests to assert known codes only in helper/manager paths.
-- T145–T147: Ensure the harness logs/validates codes in envelopes/results as part of the automatic and manual suites.
+- T145–T147: Ensure error codes are validated by existing tests.
 
 Related references
 - [`event-schemas.md`](../specs/003-websocket-event-handlers/contracts/event-schemas.md)

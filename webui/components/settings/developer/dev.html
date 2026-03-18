@@ -121,26 +121,9 @@
 
           <template x-if="!$store.settings.additional?.is_dockerized">
             <div>
-              <div class="section-title">Testing</div>
+              <div class="section-title">Diagnostics</div>
               <div class="section-description">
-                Utilities for validating WebSocket infrastructure in development environments.
-              </div>
-
-              <div class="field">
-                <div class="field-label">
-                  <div class="field-title">WebSocket Test Harness</div>
-                  <div class="field-description">
-                    Open the developer harness to run automated and manual WebSocket validation suites.
-                  </div>
-                </div>
-                <div class="field-control">
-                  <button
-                    class="btn btn-field"
-                    @click="openModal('settings/developer/websocket-tester.html');"
-                  >
-                    Open Harness
-                  </button>
-                </div>
+                Developer diagnostic utilities for WebSocket infrastructure.
               </div>
 
               <div class="field">

@@ -140,10 +140,10 @@ async def test_namespace_isolation_state_sync_vs_dev_websocket_test() -> None:
 
         @classmethod
         def get_event_types(cls) -> list[str]:
-            return ["ws_tester_emit"]
+            return ["dev_ping"]
 
         async def process_event(self, event_type: str, data: dict[str, Any], sid: str):
-            await self.broadcast("ws_tester_broadcast", {"source": "dev_websocket_test"})
+            await self.broadcast("dev_pong", {"source": "dev_websocket_test"})
             return None
 
     StateHandler._reset_instance_for_testing()
@@ -173,8 +173,8 @@ async def test_namespace_isolation_state_sync_vs_dev_websocket_test() -> None:
 
         state_push_state = asyncio.Event()
         state_push_dev = asyncio.Event()
-        tester_broadcast_dev = asyncio.Event()
-        tester_broadcast_state = asyncio.Event()
+        dev_pong_dev = asyncio.Event()
+        dev_pong_state = asyncio.Event()
 
         async def _on_state_push_state(_payload: Any) -> None:
             state_push_state.set()
@@ -182,16 +182,16 @@ async def test_namespace_isolation_state_sync_vs_dev_websocket_test() -> None:
         async def _on_state_push_dev(_payload: Any) -> None:
             state_push_dev.set()
 
-        async def _on_tester_broadcast_dev(_payload: Any) -> None:
-            tester_broadcast_dev.set()
+        async def _on_dev_pong_dev(_payload: Any) -> None:
+            dev_pong_dev.set()
 
-        async def _on_tester_broadcast_state(_payload: Any) -> None:
-            tester_broadcast_state.set()
+        async def _on_dev_pong_state(_payload: Any) -> None:
+            dev_pong_state.set()
 
         client.on("state_push", _on_state_push_state, namespace="/state_sync")
         client.on("state_push", _on_state_push_dev, namespace="/dev_websocket_test")
-        client.on("ws_tester_broadcast", _on_tester_broadcast_dev, namespace="/dev_websocket_test")
-        client.on("ws_tester_broadcast", _on_tester_broadcast_state, namespace="/state_sync")
+        client.on("dev_pong", _on_dev_pong_dev, namespace="/dev_websocket_test")
+        client.on("dev_pong", _on_dev_pong_state, namespace="/state_sync")
 
         await client.connect(
             base_url,
@@ -205,10 +205,10 @@ async def test_namespace_isolation_state_sync_vs_dev_websocket_test() -> None:
             await asyncio.sleep(0.05)
             assert state_push_dev.is_set() is False
 
-            await client.emit("ws_tester_emit", {"message": "hi"}, namespace="/dev_websocket_test")
-            await asyncio.wait_for(tester_broadcast_dev.wait(), timeout=2)
+            await client.emit("dev_ping", {"message": "hi"}, namespace="/dev_websocket_test")
+            await asyncio.wait_for(dev_pong_dev.wait(), timeout=2)
             await asyncio.sleep(0.05)
-            assert tester_broadcast_state.is_set() is False
+            assert dev_pong_state.is_set() is False
         finally:
             await client.disconnect()
 
